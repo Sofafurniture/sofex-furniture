@@ -7,6 +7,8 @@ import { getStaticProduct, PRODUCT_SLUGS } from '@/lib/products';
 import { dbProductToView, staticProductToView } from '@/lib/product-view';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 export function generateStaticParams() {
   return PRODUCT_SLUGS.map((slug) => ({ slug }));
 }
@@ -26,19 +28,29 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const staticProduct = getStaticProduct(slug);
   if (!staticProduct) notFound();
 
-  let product = staticProductToView(staticProduct);
+  const staticView = staticProductToView(staticProduct);
+  let product = staticView;
 
   if (isSupabaseConfigured) {
     try {
       const dbProduct = await fetchProductBySlug(slug);
       if (dbProduct) {
         const dbView = dbProductToView(dbProduct);
-        const staticView = staticProductToView(staticProduct);
+        const dbImages = dbView.images.filter((img) => img.src?.startsWith('http'));
         product = {
           ...dbView,
-          images: dbView.images.length > 0 ? dbView.images : staticView.images,
-          collectionItems:
-            dbView.collectionItems.length > 0 ? dbView.collectionItems : staticView.collectionItems,
+          // Always prefer high-quality static catalog photos until admin uploads real assets
+          images: staticView.images.length > 0 ? staticView.images : dbImages,
+          collectionItems: staticView.collectionItems.map((staticItem, index) => {
+            const dbItem = dbView.collectionItems[index];
+            return {
+              ...(dbItem ?? staticItem),
+              name: dbItem?.name ?? staticItem.name,
+              price: dbItem?.price ?? staticItem.price,
+              dimensions: dbItem?.dimensions ?? staticItem.dimensions,
+              image: staticItem.image ?? dbItem?.image,
+            };
+          }),
           reviews: dbView.reviews.length > 0 ? dbView.reviews : staticView.reviews,
         };
       }

@@ -22,6 +22,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
           className="object-cover"
           sizes="(max-width: 1024px) 100vw, 50vw"
           priority={activeIndex === 0}
+          unoptimized={active.src.includes('media.diy.com') || active.src.includes('homeandlove')}
         />
       </div>
       <div className="grid grid-cols-6 gap-2">
@@ -41,6 +42,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
               className="object-cover"
               sizes="80px"
               loading="lazy"
+              unoptimized={image.src.includes('media.diy.com') || image.src.includes('homeandlove')}
             />
           </button>
         ))}
