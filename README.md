@@ -65,8 +65,28 @@ See `.env.example` for the full list.
    - Events: `checkout.session.completed`
    - Copy signing secret → `STRIPE_WEBHOOK_SECRET` (`whsec_...`)
 
-### Supabase Auth (optional — Google & Apple sign-in)
+### Supabase Auth (Google & Apple sign-in)
 
-In Supabase Dashboard → Authentication → Providers, enable Google and Apple, then add redirect URL:
-`https://sofex-furniture.netlify.app/auth/callback`
+**1. Supabase Dashboard** → [Authentication → URL Configuration](https://supabase.com/dashboard/project/qcqiibyayegtqiwrpjrp/auth/url-configuration)
+
+| Field | Value |
+|-------|--------|
+| **Site URL** | `https://sofex-furniture.netlify.app` |
+| **Redirect URLs** | `https://sofex-furniture.netlify.app/auth/callback` |
+| | `http://localhost:3000/auth/callback` (local dev) |
+
+**2. Enable providers** → [Authentication → Providers](https://supabase.com/dashboard/project/qcqiibyayegtqiwrpjrp/auth/providers)
+
+- Turn on **Google** and **Apple**
+- For each provider, use this **Authorized redirect URI** in Google Cloud / Apple Developer (Supabase shows it on the provider page):
+  ```
+  https://qcqiibyayegtqiwrpjrp.supabase.co/auth/v1/callback
+  ```
+  That is the Supabase OAuth endpoint — not your Netlify URL.
+
+**3. Your app callback** (already in code): after Google/Apple login, Supabase redirects users to:
+```
+https://sofex-furniture.netlify.app/auth/callback?next=/configurator
+```
+That `/auth/callback` path must be listed in **Redirect URLs** in step 1.
 

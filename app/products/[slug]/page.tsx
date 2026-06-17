@@ -31,7 +31,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (isSupabaseConfigured) {
     try {
       const dbProduct = await fetchProductBySlug(slug);
-      if (dbProduct) product = dbProductToView(dbProduct);
+      if (dbProduct) {
+        const dbView = dbProductToView(dbProduct);
+        const staticView = staticProductToView(staticProduct);
+        product = {
+          ...dbView,
+          images: dbView.images.length > 0 ? dbView.images : staticView.images,
+          collectionItems:
+            dbView.collectionItems.length > 0 ? dbView.collectionItems : staticView.collectionItems,
+          reviews: dbView.reviews.length > 0 ? dbView.reviews : staticView.reviews,
+        };
+      }
     } catch {
       // use static fallback
     }

@@ -2,7 +2,7 @@ import type { CatalogProduct } from './types';
 import { buildCollectionItems } from './collection-catalog';
 
 const BQ = (n: number) =>
-  `https://media.diy.com/is/image/Kingfisher/4378654093256_${String(n).padStart(2, '0')}`;
+  `https://media.diy.com/is/image/Kingfisher/4378654093256_${String(n).padStart(2, '0')}?$Kingfisher$&$wid=1200$`;
 const HOL = (name: string) =>
   `https://homeandlove.louisinteriors.co.uk/wp-content/uploads/2024/04/${name}`;
 

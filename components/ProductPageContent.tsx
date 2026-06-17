@@ -100,10 +100,10 @@ export function ProductPageContent({ product }: ProductPageContentProps) {
               </Link>
             </div>
 
-            <div className="mt-8 p-4 bg-[#F4F3EF] rounded-xl border border-[#EBEAE6] flex items-center gap-3">
-              <Truck className="w-5 h-5 text-[#64625D] shrink-0" />
-              <p className="text-xs text-[#64625D]">
-                Delivered in 3 separate boxes. Easy assembly with full instructions included.
+            <div className="mt-8 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center gap-3">
+              <Truck className="w-5 h-5 text-emerald-800 shrink-0" />
+              <p className="text-xs text-emerald-900">
+                Delivered within 7 days inside our 50-mile London radius — whole sofa, assembled in your home.
               </p>
             </div>
           </div>
