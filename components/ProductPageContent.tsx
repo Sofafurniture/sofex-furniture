@@ -5,6 +5,7 @@ import { BrandLogo } from '@/components/BrandLogo';
 import { BRAND_NAME } from '@/lib/brand';
 import { ProductGallery } from '@/components/ProductGallery';
 import { ProductReviews } from '@/components/ProductReviews';
+import { shouldBypassImageOptimizer } from '@/lib/image-utils';
 import type { ProductView } from '@/lib/product-view';
 
 interface ProductPageContentProps {
@@ -184,6 +185,7 @@ export function ProductPageContent({ product }: ProductPageContentProps) {
                         className="object-contain p-1"
                         sizes="200px"
                         loading="lazy"
+                        unoptimized={shouldBypassImageOptimizer(imageSrc)}
                       />
                     )}
                   </div>

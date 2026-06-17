@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { shouldBypassImageOptimizer } from '@/lib/image-utils';
 
 interface ProductGalleryProps {
   images: { src: string; alt: string }[];
@@ -22,7 +23,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
           className="object-cover"
           sizes="(max-width: 1024px) 100vw, 50vw"
           priority={activeIndex === 0}
-          unoptimized={active.src.includes('media.diy.com') || active.src.includes('homeandlove')}
+          unoptimized={shouldBypassImageOptimizer(active.src)}
         />
       </div>
       <div className="grid grid-cols-6 gap-2">
@@ -42,7 +43,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
               className="object-cover"
               sizes="80px"
               loading="lazy"
-              unoptimized={image.src.includes('media.diy.com') || image.src.includes('homeandlove')}
+              unoptimized={shouldBypassImageOptimizer(image.src)}
             />
           </button>
         ))}

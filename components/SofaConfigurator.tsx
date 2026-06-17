@@ -21,6 +21,7 @@ import {
   getModelPreviewImage,
 } from '@/lib/configurator-catalog';
 import { calculatePrice } from '@/lib/pricing';
+import { shouldBypassImageOptimizer } from '@/lib/image-utils';
 import { useSofaStore } from '@/store/sofa-store';
 
 function useCalculatedPrice() {
@@ -109,6 +110,7 @@ export default function SofaConfigurator() {
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     priority
+                    unoptimized={shouldBypassImageOptimizer(previewImage)}
                   />
                 </div>
                 <div className="p-5 text-center border-t border-[#EBEAE6]">
@@ -184,7 +186,7 @@ export default function SofaConfigurator() {
                           className={`p-3 rounded-xl border text-left flex gap-3 items-center ${isSelected ? 'border-black ring-1 ring-black bg-[#FBFBFA]' : 'border-[#EBEAE6] hover:border-[#C8C6C0]'}`}
                         >
                           <div className="relative w-16 h-14 rounded-lg overflow-hidden bg-[#F4F3EF] shrink-0">
-                            <Image src={thumb} alt={item.name} fill className="object-cover" sizes="64px" />
+                            <Image src={thumb} alt={item.name} fill className="object-cover" sizes="64px" unoptimized={shouldBypassImageOptimizer(thumb)} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <span className="text-sm font-medium block">{item.name}</span>
@@ -228,7 +230,7 @@ export default function SofaConfigurator() {
                           className={`rounded-xl border overflow-hidden text-left transition-all ${isSelected ? 'border-black ring-2 ring-black shadow-md' : 'border-[#EBEAE6] hover:border-[#C8C6C0]'}`}
                         >
                           <div className="relative h-24 bg-[#F4F3EF]">
-                            <Image src={thumb} alt={cat.label} fill className="object-cover" sizes="200px" />
+                            <Image src={thumb} alt={cat.label} fill className="object-cover" sizes="200px" unoptimized={shouldBypassImageOptimizer(thumb)} />
                           </div>
                           <div className="p-2.5 flex justify-between items-start gap-2">
                             <div>

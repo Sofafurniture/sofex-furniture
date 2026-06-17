@@ -7,6 +7,7 @@ import { BRAND_NAME } from '@/lib/brand';
 import { DELIVERY_PROMISE } from '@/lib/configurator-catalog';
 import { FABRIC_DETAILS, MODEL_DETAILS } from '@/lib/sofa-data';
 import { PRODUCT_CATALOG, brooklynProduct } from '@/lib/products';
+import { shouldBypassImageOptimizer } from '@/lib/image-utils';
 
 export default function HomePage() {
   return (
@@ -107,6 +108,7 @@ export default function HomePage() {
                       className="object-cover"
                       sizes="300px"
                       loading="lazy"
+                      unoptimized={shouldBypassImageOptimizer(catalog.images[0].src)}
                     />
                   ) : (
                     <div className="h-full flex items-center justify-center">
