@@ -1,0 +1,145 @@
+import type { CatalogProduct } from './types';
+import { sofologyImage } from '@/lib/image-url';
+import { buildCollectionItems } from './collection-catalog';
+
+const scoop = (sku: string) => sofologyImage(`scoops/${sku}.png`, 600);
+
+export const lavenciaProduct: CatalogProduct = {
+  slug: 'lavencia',
+  name: 'The Lavencia 3 Seater Sofa',
+  colour: 'Luxe Chenille Stone',
+  price: 1099,
+  monthlyPrice: 37.9,
+  sku: 'SKU001597374',
+  reviewCount: 54,
+  averageRating: 4.9,
+  ratingBreakdown: [
+    { stars: 5, count: 50, percent: 93 },
+    { stars: 4, count: 3, percent: 6 },
+    { stars: 3, count: 1, percent: 2 },
+    { stars: 2, count: 0, percent: 0 },
+    { stars: 1, count: 0, percent: 0 },
+  ],
+  images: [
+    { src: sofologyImage('cameos/sku001592766-0.jpg'), alt: 'The Lavencia 3 Seater Sofa — front view' },
+    { src: sofologyImage('cameos/sku001592766-1.jpg'), alt: 'The Lavencia sofa — angled view' },
+    { src: sofologyImage('cameos/sku001592766-2.jpg'), alt: 'The Lavencia sofa — side profile' },
+    { src: sofologyImage('cameos/sku001592766-3.jpg'), alt: 'The Lavencia sofa — detail shot' },
+    { src: sofologyImage('lifestyle/sku001592766.jpg', 1200), alt: 'The Lavencia sofa in a styled living room' },
+    { src: scoop('sku001597374'), alt: 'The Lavencia 3 Seater — configuration view' },
+  ],
+  description: {
+    intro:
+      'Chic yet contemporary, the Lavencia is designed for those who love the finer things in life. Crafted with charm and elegance at its heart, it features soft sweeping curves and intricate fluting detail on the arms.',
+    sections: [
+      {
+        heading: 'Curved contemporary elegance',
+        body: 'The Lavencia makes a refined statement with gently sculpted arms, deep comfortable seating and a grounded silhouette. Wide seat cushions invite slow, restful moments, while the luxe chenille fabric adds everyday luxury in a curated stone shade.',
+      },
+      {
+        heading: 'Personalise your finish',
+        body: 'Choose from gold, chrome or fabric button trim options to suit almost any interior. Lovingly crafted from cosy chenille and bouclé fabric options, with 30 curated shades available across the full range so the Lavencia fits seamlessly into your home.',
+      },
+      {
+        heading: 'Built to last',
+        body: 'Handcrafted with a hardwood, softwood and composite wood frame, foam seats wrapped in Dacron fibre, and fibre-filled back cushions. Scatter cushions and bolsters are feather-filled for that sink-in comfort. Covered by a lifetime structural guarantee.',
+      },
+      {
+        heading: 'Delivered with care',
+        body: 'This sofa breaks down into smaller pieces for easier delivery through doors and staircases. Our expert delivery team installs the metal feet in your preferred room. Handcrafted and delivered in approximately 7 weeks.',
+      },
+    ],
+    highlights: [
+      'Soft sweeping curves with fluted arm detail',
+      'Luxe chenille upholstery in stone',
+      'Gold, chrome or fabric button trim options',
+      '30 curated fabric shades across the range',
+      'Foam seats with Dacron wrap, fibre-filled backs',
+      'Lifetime structural guarantee',
+      'Metal feet in chrome or gold',
+      'Breaks down for easier home delivery',
+    ],
+  },
+  specs: [
+    { label: 'SKU', value: 'SKU001597374' },
+    { label: 'Fabric', value: 'Luxe Chenille' },
+    { label: 'Colour', value: 'Stone' },
+    { label: 'Dimensions', value: 'W206 x H94 x D95 cm' },
+    { label: 'Frame', value: 'Hardwood, softwood and composite wood' },
+    { label: 'Feet', value: 'Metal — chrome or gold, with hidden support feet on selected configurations' },
+    { label: 'Seat Filling', value: 'Foam wrapped in Dacron fibre' },
+    { label: 'Back Cushions', value: 'Fibre filled' },
+    { label: 'Scatter Cushions', value: 'Feather filled' },
+    { label: 'Type', value: '3 Seater Sofa' },
+    { label: 'Mechanism', value: 'Static — no recliner mechanisms' },
+    { label: 'Range Sizes', value: '9 configurations from chair to corner' },
+    { label: 'Range Colours', value: '30 shades' },
+    { label: 'Lead Time', value: 'Approximately 7 weeks' },
+    { label: 'Guarantee', value: 'Lifetime structural guarantee' },
+  ],
+  delivery: [
+    { service: 'UK Mainland Sofa Delivery', cost: '£129', timeframe: '7 days a week, 7am–7pm' },
+    { service: 'Single Chair / Footstool Delivery', cost: '£20', timeframe: '7 days a week, 7am–7pm' },
+    { service: 'Handcrafted Build', cost: 'Included', timeframe: 'In your home from 7 weeks' },
+    { service: '0% APR Finance', cost: 'From £37.90/mo', timeframe: 'Up to 4 years available (min spend £600)' },
+  ],
+  careInstructions: [
+    'Follow our 8 easy care tips to keep your sofa looking great.',
+    'Use specially formulated fabric care kits when cleaning chenille or bouclé upholstery.',
+    'Regularly plump cushions and vacuum with the soft brush head attachment.',
+    'Check dimensions of your chosen configuration before ordering — measure doors, hallways and staircases.',
+    'With corner configurations, measure the space needed when fully arranged in your room.',
+  ],
+  collectionItems: buildCollectionItems('Lavencia', [
+    scoop('sku001592506'),
+    scoop('sku001592818'),
+    scoop('sku001592038'),
+    scoop('sku001597374'),
+    scoop('sku001592350'),
+    scoop('sku001592662'),
+    scoop('sku001696798'),
+    scoop('sku001696954'),
+    scoop('sku001697110'),
+    scoop('sku001594075'),
+    scoop('sku001594062'),
+    scoop('sku001802621'),
+    scoop('sku001802561'),
+  ]),
+  reviews: [
+    {
+      id: '1',
+      author: 'Emma R.',
+      title: 'Absolutely stunning',
+      body: 'The curved arms and fluted detail are even more beautiful in person. The stone chenille is soft and the sofa is incredibly comfortable.',
+      rating: 5,
+    },
+    {
+      id: '2',
+      author: 'James T.',
+      title: 'Worth the wait',
+      body: 'Took about 7 weeks but delivery was smooth and the team assembled everything perfectly. The chrome feet look brilliant against our flooring.',
+      rating: 5,
+    },
+    {
+      id: '3',
+      author: 'Priya K.',
+      title: 'Perfect centrepiece',
+      body: 'We went for the 3 seater and it anchors our open-plan living room beautifully. Guests always comment on the shape and quality.',
+      rating: 5,
+    },
+    {
+      id: '4',
+      author: 'David M.',
+      title: 'Great quality',
+      body: 'Solid build, deep seats and the feather scatter cushions are a lovely touch. Very happy with our choice of the gold button trim.',
+      rating: 5,
+    },
+    {
+      id: '5',
+      author: 'Sophie L.',
+      title: 'Beautiful range',
+      body: 'We paired the 2 seater with the large corner and the scoops matched exactly what arrived. True to the pictures on the site.',
+      rating: 4,
+    },
+  ],
+};
