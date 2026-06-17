@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { Suspense } from 'react';
 import { BRAND_NAME } from '@/lib/brand';
 import { DiscountPopup } from '@/components/DiscountPopup';
+import { OAuthCodeRedirect } from '@/components/OAuthCodeRedirect';
 import './globals.css';
 
 const geistSans = Geist({
@@ -25,6 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Suspense fallback={null}>
+          <OAuthCodeRedirect />
+        </Suspense>
         {children}
         <DiscountPopup />
       </body>

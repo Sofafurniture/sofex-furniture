@@ -5,7 +5,16 @@ import { verifyDriverSession, COOKIE_NAME as DRIVER_COOKIE } from '@/lib/driver-
 import { updateSupabaseSession } from '@/lib/supabase-middleware';
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Supabase sometimes redirects to Site URL root with ?code= instead of /auth/callback
+  const oauthCode = searchParams.get('code');
+  if (oauthCode && pathname !== '/auth/callback') {
+    const callback = new URL('/auth/callback', request.url);
+    callback.searchParams.set('code', oauthCode);
+    callback.searchParams.set('next', searchParams.get('next') ?? '/configurator');
+    return NextResponse.redirect(callback);
+  }
 
   if (pathname === '/admin/login' || pathname === '/api/admin/login') {
     return NextResponse.next();

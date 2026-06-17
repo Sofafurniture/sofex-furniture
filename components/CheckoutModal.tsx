@@ -161,8 +161,8 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
 
           {mode === 'account' && (
             <div className="space-y-3 p-4 rounded-xl border border-[#EBEAE6] bg-[#FBFBFA]">
-              <p className="text-xs text-[#64625D]">Sign in with Google to save your design and track delivery. New accounts are created automatically.</p>
-              <AuthButtons redirectTo="/configurator" />
+              <p className="text-xs text-[#64625D]">Sign in or create an account with Google to save your design.</p>
+              <AuthButtons redirectTo="/configurator" variant="both" />
               <p className="text-[10px] text-[#8A8782] text-center">Or continue as guest with the form below</p>
             </div>
           )}
