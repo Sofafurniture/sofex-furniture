@@ -231,6 +231,9 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
             <p className="text-xs font-mono uppercase tracking-wider text-[#64625D] flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" /> Choose delivery date & time
             </p>
+            <p className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
+              Earliest delivery is <strong>2 days from today</strong> — today and tomorrow are not available.
+            </p>
             <select
               required
               value={deliveryDate}

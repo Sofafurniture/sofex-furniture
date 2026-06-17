@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildOrderDescription, calculatePrice } from '@/lib/pricing';
-import { formatDeliverySlot } from '@/lib/delivery-slots';
+import { formatDeliverySlot, isDeliveryDateAllowed } from '@/lib/delivery-slots';
 import { applyPercentDiscount, FIRST_ORDER_DISCOUNT_PERCENT, validateDiscountCode } from '@/lib/discount';
 import { getStripe, isStripeConfigured } from '@/lib/stripe';
 import { createServiceClient, isSupabaseConfigured } from '@/lib/supabase';
@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
       !deliverySlot
     ) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!isDeliveryDateAllowed(deliveryDate)) {
+      return NextResponse.json(
+        { error: 'Invalid delivery date', message: 'Please choose a delivery date at least 2 days from today.' },
+        { status: 400 },
+      );
     }
 
     const prices = calculatePrice(config);
