@@ -1,16 +1,19 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, ShieldCheck, Sparkles, Star, Truck } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Sparkles, Star, Truck, Clock, MapPin, Wrench } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
+import { DeliveryPromiseStrip } from '@/components/DeliveryPromiseStrip';
 import { BRAND_NAME } from '@/lib/brand';
+import { DELIVERY_PROMISE } from '@/lib/configurator-catalog';
 import { FABRIC_DETAILS, MODEL_DETAILS } from '@/lib/sofa-data';
 import { PRODUCT_CATALOG, brooklynProduct } from '@/lib/products';
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#FBFBFA] text-[#1C1B1A]">
-      <div className="bg-[#1C1B1A] text-white text-xs font-light tracking-[0.15em] text-center py-2 px-4 uppercase">
-        Handcrafted bespoke builds · Delivered in 4-6 Weeks · 0% Interest Free Finance
+      <div className="bg-emerald-900 text-white text-xs font-medium tracking-wide text-center py-2.5 px-4">
+        <Clock className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+        {DELIVERY_PROMISE.headline} · {DELIVERY_PROMISE.radius}
       </div>
 
       <header className="sticky top-0 z-40 bg-[#FBFBFA]/90 backdrop-blur-md border-b border-[#EBEAE6] px-6 lg:px-12 py-4 flex items-center justify-between">
@@ -19,7 +22,6 @@ export default function HomePage() {
           <a href="#story" className="hover:text-black transition-colors">Our Story</a>
           <a href="#collections" className="hover:text-black transition-colors">Collections</a>
           <Link href="/configurator" className="hover:text-black transition-colors">Configurator</Link>
-          <Link href="/admin" className="hover:text-black transition-colors">Admin</Link>
         </nav>
         <Link
           href="/configurator"
@@ -37,7 +39,7 @@ export default function HomePage() {
               Sofas built for how you actually live.
             </h1>
             <p className="text-base text-[#64625D] mt-6 max-w-lg leading-relaxed">
-              Every {BRAND_NAME} sofa is hand-built to your exact specifications — frame silhouette, scale, fabric tier, and comfort profile. Configure yours in minutes, delivered in 4–6 weeks.
+              Your custom sofa, handcrafted and delivered within <strong className="text-black">7 days</strong> — inside a 50-mile radius of London. We deliver the whole sofa and assemble it in your home. Never flat-packed.
             </p>
             <div className="flex flex-wrap gap-4 mt-10">
               <Link
@@ -133,6 +135,16 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section id="delivery" className="py-16 bg-white border-y border-[#EBEAE6]">
+        <div className="max-w-[1000px] mx-auto px-6 lg:px-12">
+          <div className="text-center mb-10">
+            <p className="text-xs font-mono uppercase tracking-[0.2em] text-emerald-800">Why Sofex</p>
+            <h2 className="text-3xl font-light tracking-tight mt-2">London&apos;s fastest bespoke sofa delivery</h2>
+          </div>
+          <DeliveryPromiseStrip />
+        </div>
+      </section>
+
       <section id="story" className="py-20">
         <div className="max-w-[900px] mx-auto px-6 lg:px-12 text-center">
           <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#8A8782]">Our Story</p>
@@ -171,19 +183,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 border-t border-[#EBEAE6]">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 grid sm:grid-cols-3 gap-8 text-center">
+      <section className="py-16 border-t border-[#EBEAE6] bg-[#F4F3EF]">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 grid sm:grid-cols-4 gap-8 text-center">
           <div className="flex flex-col items-center">
-            <ShieldCheck className="w-5 h-5 text-[#64625D] mb-2" />
+            <Clock className="w-5 h-5 text-emerald-800 mb-2" />
+            <span className="text-xs font-semibold uppercase tracking-wider">7-Day Delivery</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <MapPin className="w-5 h-5 text-emerald-800 mb-2" />
+            <span className="text-xs font-semibold uppercase tracking-wider">50 Miles of London</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Wrench className="w-5 h-5 text-emerald-800 mb-2" />
+            <span className="text-xs font-semibold uppercase tracking-wider">Assembled In Your Home</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <ShieldCheck className="w-5 h-5 text-emerald-800 mb-2" />
             <span className="text-xs font-semibold uppercase tracking-wider">15 Year Frame Guarantee</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <Truck className="w-5 h-5 text-[#64625D] mb-2" />
-            <span className="text-xs font-semibold uppercase tracking-wider">Premium Tracked Delivery</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <Sparkles className="w-5 h-5 text-[#64625D] mb-2" />
-            <span className="text-xs font-semibold uppercase tracking-wider">Hand Spun Fabrics</span>
           </div>
         </div>
       </section>

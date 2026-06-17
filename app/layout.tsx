@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { BRAND_NAME } from '@/lib/brand';
+import { DiscountPopup } from '@/components/DiscountPopup';
 import './globals.css';
 
 const geistSans = Geist({
@@ -16,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: `${BRAND_NAME} — Bespoke Custom Sofas`,
-  description: 'Handcrafted bespoke sofas. Design your perfect sofa with our interactive configurator. Delivered in 4-6 weeks.',
+  title: `${BRAND_NAME} — Custom Sofas Delivered Within 7 Days`,
+  description: 'Bespoke sofas handcrafted to order. Delivered within 50 miles of London in as little as 7 days — whole sofa, assembled in your home.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
+        <DiscountPopup />
       </body>
     </html>
   );

@@ -49,8 +49,8 @@ export const carnabyProduct: CatalogProduct = {
         body: 'The spacious U-shape configuration maximises seating and creates an inviting conversational area. Comfortably seats 5–6 people — the ultimate social hub for laughter, lounging and long movie nights. Handcrafted by Home & Love, specialists in beds and sofas from Huddersfield, West Yorkshire.',
       },
       {
-        heading: 'Delivery & assembly',
-        body: 'Delivered in sections for easier access through doors and staircases. Simple final assembly required — feet and modules connect quickly with full instructions included.',
+        heading: 'Whole-sofa delivery & assembly',
+        body: 'Unlike flat-pack retailers, Sofex delivers your Carnaby as a complete sofa and assembles it in your home. Our two-person team handles access, positioning and final setup — you never wrestle with boxes of parts.',
       },
     ],
     highlights: [
@@ -77,7 +77,7 @@ export const carnabyProduct: CatalogProduct = {
     { label: 'Footstool', value: 'Included — movable' },
     { label: 'Cushions', value: 'Removable back & seat cushions' },
     { label: 'Feet', value: 'Sturdy black feet' },
-    { label: 'Assembly', value: 'Required — sectional delivery' },
+    { label: 'Assembly', value: 'Delivered whole — assembled on site by Sofex team' },
     { label: 'Origin', value: 'Made in the UK' },
   ],
   delivery: [
@@ -91,7 +91,6 @@ export const carnabyProduct: CatalogProduct = {
     'Blot spills immediately with a clean, dry cloth — do not rub.',
     'Professional clean recommended for stubborn stains.',
     'Keep away from direct sunlight and heat sources to prevent fading.',
-    'Check doorways and staircases before ordering — sofa is delivered in sections.',
   ],
   collectionItems: buildCollectionItems('Carnaby', [
     BQ(1),

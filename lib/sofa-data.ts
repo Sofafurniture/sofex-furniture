@@ -12,7 +12,8 @@ export interface FabricColor {
 
 export interface SofaConfiguration {
   model: SofaModel;
-  size: SofaSize;
+  /** Index into CONFIGURATOR_CATEGORIES */
+  categoryIndex: number;
   fabricQuality: FabricQuality;
   fabricColorId: string;
   cushionType: CushionType;

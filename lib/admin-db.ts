@@ -110,7 +110,7 @@ export function ordersToCsv(orders: Order[]): string {
       o.status,
       (o.total_pence / 100).toFixed(2),
       cfg.model ?? '',
-      cfg.size ?? '',
+      (cfg.categoryLabel as string) ?? (cfg.size as string) ?? '',
       cfg.fabricQuality ?? '',
       cfg.fabricColorId ?? '',
       cfg.cushionType ?? '',

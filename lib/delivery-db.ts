@@ -10,7 +10,11 @@ import type {
 export function formatOrderDescription(configuration: Record<string, unknown>): string {
   const parts: string[] = [];
   if (configuration.model) parts.push(String(configuration.model));
-  if (configuration.size) parts.push(String(configuration.size));
+  if (configuration.categoryIndex !== undefined) {
+    parts.push(`category #${configuration.categoryIndex}`);
+  } else if (configuration.size) {
+    parts.push(String(configuration.size));
+  }
   if (configuration.fabricQuality) parts.push(String(configuration.fabricQuality));
   if (configuration.fabricColorId) parts.push(String(configuration.fabricColorId));
   if (configuration.cushionType) parts.push(`${configuration.cushionType} cushions`);

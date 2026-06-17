@@ -48,3 +48,25 @@ Change credentials in `.env.local` before production.
 ## Environment variables
 
 See `.env.example` for the full list.
+
+### Stripe setup (required for checkout)
+
+1. Create a Stripe account at [stripe.com](https://stripe.com) (use your **Sofafurniture** business account).
+2. Copy keys from [Dashboard → API keys](https://dashboard.stripe.com/apikeys):
+   - `STRIPE_SECRET_KEY` — Secret key (`sk_test_...` or `sk_live_...`)
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — Publishable key (`pk_test_...` or `pk_live_...`)
+3. Add to **Netlify** → Site settings → Environment variables (and `.env.local` for local dev).
+4. Enable payment methods at [Payment methods settings](https://dashboard.stripe.com/settings/payment_methods):
+   - Cards (includes **Apple Pay** & **Google Pay** when enabled)
+   - **Klarna**
+   - **Clearpay** (Afterpay/Clearpay)
+5. Create a webhook: [Developers → Webhooks](https://dashboard.stripe.com/webhooks)
+   - Endpoint: `https://sofex-furniture.netlify.app/api/webhooks/stripe`
+   - Events: `checkout.session.completed`
+   - Copy signing secret → `STRIPE_WEBHOOK_SECRET` (`whsec_...`)
+
+### Supabase Auth (optional — Google & Apple sign-in)
+
+In Supabase Dashboard → Authentication → Providers, enable Google and Apple, then add redirect URL:
+`https://sofex-furniture.netlify.app/auth/callback`
+
