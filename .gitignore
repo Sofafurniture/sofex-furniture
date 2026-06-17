@@ -41,3 +41,6 @@ next-env.d.ts
 
 # netlify / deno
 deno.lock
+
+# supabase local link state
+supabase/.temp/
