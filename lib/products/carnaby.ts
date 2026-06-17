@@ -1,10 +1,19 @@
 import type { CatalogProduct } from './types';
 import { buildCollectionItems } from './collection-catalog';
 
-const BQ = (n: number) =>
-  `https://media.diy.com/is/image/Kingfisher/4378654093256_${String(n).padStart(2, '0')}`;
 const HOL = (name: string) =>
   `https://homeandlove.louisinteriors.co.uk/wp-content/uploads/2024/04/${name}`;
+
+const GALLERY = [
+  { file: 'carnaby-sofa-beige-u-shape-corner-1.jpg', alt: 'The Carnaby Cinema U-Shape Sofa — Surrey Cream front view' },
+  { file: 'carnaby-sofa-beige-u-shape-corner-2.jpg', alt: 'The Carnaby U-Shape sofa — cinema layout with footstool' },
+  { file: 'carnaby-sofa-beige-u-shape-corner-3.jpg', alt: 'The Carnaby U-Shape sofa — standard configuration' },
+  { file: 'carnaby-sofa-beige-u-shape-corner-4.jpg', alt: 'The Carnaby sofa — plush cushion detail' },
+  { file: 'carnaby-sofa-beige-u-shape-corner-5.jpg', alt: 'The Carnaby U-Shape sofa — angled view' },
+  { file: 'carnaby-sofa-beige-u-shape-corner-6.jpg', alt: 'The Carnaby sofa — living room styled shot' },
+  { file: 'carnaby-sofa-beige-u-shape-corner-7.jpg', alt: 'The Carnaby Cinema sofa — side profile' },
+  { file: 'carnaby-sofa-beige-u-shape-corner-8.jpg', alt: 'The Carnaby U-Shape sofa — full room setting' },
+] as const;
 
 export const carnabyProduct: CatalogProduct = {
   slug: 'carnaby',
@@ -22,16 +31,7 @@ export const carnabyProduct: CatalogProduct = {
     { stars: 2, count: 0, percent: 0 },
     { stars: 1, count: 0, percent: 0 },
   ],
-  images: [
-    { src: BQ(1), alt: 'The Carnaby Cinema U-Shape Sofa — Surrey Cream front view' },
-    { src: BQ(2), alt: 'The Carnaby U-Shape sofa — cinema layout with footstool' },
-    { src: BQ(3), alt: 'The Carnaby U-Shape sofa — standard configuration' },
-    { src: BQ(4), alt: 'The Carnaby sofa — plush cushion detail' },
-    { src: BQ(5), alt: 'The Carnaby U-Shape sofa — angled view' },
-    { src: BQ(6), alt: 'The Carnaby sofa — living room styled shot' },
-    { src: BQ(7), alt: 'The Carnaby Cinema sofa — side profile' },
-    { src: BQ(8), alt: 'The Carnaby U-Shape sofa — full room setting' },
-  ],
+  images: GALLERY.map(({ file, alt }) => ({ src: HOL(file), alt })),
   description: {
     intro:
       'This luxurious U-shaped sofa is designed to be the centrepiece of your living space. Generous dimensions provide ample seating for family and guests — perfect for cosy nights in or entertaining.',
@@ -93,14 +93,14 @@ export const carnabyProduct: CatalogProduct = {
     'Keep away from direct sunlight and heat sources to prevent fading.',
   ],
   collectionItems: buildCollectionItems('Carnaby', [
-    BQ(1),
-    BQ(2),
-    BQ(3),
-    BQ(4),
-    BQ(5),
-    BQ(6),
-    BQ(7),
-    BQ(8),
+    HOL('carnaby-sofa-beige-u-shape-corner-1.jpg'),
+    HOL('carnaby-sofa-beige-u-shape-corner-2.jpg'),
+    HOL('carnaby-sofa-beige-u-shape-corner-3.jpg'),
+    HOL('carnaby-sofa-beige-u-shape-corner-4.jpg'),
+    HOL('carnaby-sofa-beige-u-shape-corner-5.jpg'),
+    HOL('carnaby-sofa-beige-u-shape-corner-6.jpg'),
+    HOL('carnaby-sofa-beige-u-shape-corner-7.jpg'),
+    HOL('carnaby-sofa-beige-u-shape-corner-8.jpg'),
     HOL('carnaby-sofa-beige-u-shape-corner-1.jpg'),
     HOL('carnaby-sofa-beige-u-shape-corner-5.jpg'),
     HOL('carnaby-sofa-grey-u-shape-corner-1.jpg'),
