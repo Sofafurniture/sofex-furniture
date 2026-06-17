@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { ArrowRight, ShieldCheck, Sparkles, Star, Truck, Clock, MapPin, Wrench } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { DeliveryPromiseStrip } from '@/components/DeliveryPromiseStrip';
+import { UserAuth } from '@/components/UserAuth';
 import { BRAND_NAME } from '@/lib/brand';
 import { DELIVERY_PROMISE } from '@/lib/configurator-catalog';
 import { FABRIC_DETAILS, MODEL_DETAILS } from '@/lib/sofa-data';
@@ -24,12 +25,15 @@ export default function HomePage() {
           <a href="#collections" className="hover:text-black transition-colors">Collections</a>
           <Link href="/configurator" className="hover:text-black transition-colors">Configurator</Link>
         </nav>
-        <Link
-          href="/configurator"
-          className="bg-[#1C1B1A] text-white text-xs font-semibold uppercase tracking-widest px-5 py-2.5 rounded-xl hover:bg-black transition-colors"
-        >
-          Design Yours
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/configurator"
+            className="bg-[#1C1B1A] text-white text-xs font-semibold uppercase tracking-widest px-5 py-2.5 rounded-xl hover:bg-black transition-colors"
+          >
+            Design Yours
+          </Link>
+          <UserAuth compact />
+        </div>
       </header>
 
       <section className="relative overflow-hidden">

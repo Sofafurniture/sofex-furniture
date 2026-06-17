@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Check, ShoppingBag, Star, Truck } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
+import { UserAuth } from '@/components/UserAuth';
 import { BRAND_NAME } from '@/lib/brand';
 import { ProductGallery } from '@/components/ProductGallery';
 import { ProductReviews } from '@/components/ProductReviews';
@@ -26,12 +27,15 @@ export function ProductPageContent({ product }: ProductPageContentProps) {
           <Link href={`/products/${product.slug}`} className="text-black font-semibold underline underline-offset-4 capitalize">{product.slug}</Link>
           <Link href="/configurator" className="hover:text-black transition-colors">Configurator</Link>
         </nav>
-        <Link
-          href="/configurator"
-          className="bg-[#1C1B1A] text-white text-xs font-semibold uppercase tracking-widest px-5 py-2.5 rounded-xl hover:bg-black transition-colors"
-        >
-          Customise
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/configurator"
+            className="bg-[#1C1B1A] text-white text-xs font-semibold uppercase tracking-widest px-5 py-2.5 rounded-xl hover:bg-black transition-colors"
+          >
+            Customise
+          </Link>
+          <UserAuth compact />
+        </div>
       </header>
 
       <main className="max-w-[1400px] mx-auto px-6 lg:px-12 py-12 lg:py-16">

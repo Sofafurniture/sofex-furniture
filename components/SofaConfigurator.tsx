@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrandLogo } from '@/components/BrandLogo';
+import { UserAuth } from '@/components/UserAuth';
 import {
   Check, Info, Sliders, ShoppingBag, ShieldCheck, Truck, Clock, MapPin,
 } from 'lucide-react';
@@ -67,9 +68,12 @@ export default function SofaConfigurator() {
           <Link href="/configurator" className="text-black font-semibold underline underline-offset-4">Configurator</Link>
           <Link href="/#collections" className="hover:text-black transition-colors">Collections</Link>
         </nav>
-        <span className="text-xs font-semibold uppercase tracking-widest text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
-          7-day delivery
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold uppercase tracking-widest text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 hidden sm:inline">
+            7-day delivery
+          </span>
+          <UserAuth compact />
+        </div>
       </header>
 
       <main className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-85px)]">

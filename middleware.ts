@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyAdminSession, COOKIE_NAME as ADMIN_COOKIE } from '@/lib/admin-session';
 import { verifyDriverSession, COOKIE_NAME as DRIVER_COOKIE } from '@/lib/driver-session';
+import { updateSupabaseSession } from '@/lib/supabase-middleware';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -42,9 +43,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return updateSupabaseSession(request);
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*', '/driver/:path*', '/api/driver/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/api/admin/:path*',
+    '/driver/:path*',
+    '/api/driver/:path*',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };

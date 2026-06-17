@@ -32,8 +32,13 @@ export async function GET(request: Request) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(new URL(`/configurator?auth_error=${encodeURIComponent(error.message)}`, origin));
+    const loginUrl = new URL('/login', origin);
+    loginUrl.searchParams.set('auth_error', error.message);
+    loginUrl.searchParams.set('next', next);
+    return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.redirect(new URL(next, origin));
+  const destination = new URL(next, origin);
+  destination.searchParams.set('signed_in', '1');
+  return NextResponse.redirect(destination);
 }

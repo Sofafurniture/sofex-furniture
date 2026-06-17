@@ -40,14 +40,23 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
   useEffect(() => {
     if (!isOpen || !isSupabaseConfigured) return;
     const supabase = createBrowserClient();
-    supabase.auth.getUser().then(({ data }) => {
-      const user = data.user;
-      if (!user) return;
+
+    function applyUser(user: NonNullable<Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user']>) {
       setMode('account');
       if (user.email) setEmail(user.email);
       const meta = user.user_metadata as { full_name?: string; name?: string };
       setName(meta.full_name ?? meta.name ?? '');
+    }
+
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) applyUser(data.user);
     });
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) applyUser(session.user);
+    });
+
+    return () => subscription.subscription.unsubscribe();
   }, [isOpen]);
 
   useEffect(() => {
@@ -152,8 +161,8 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
 
           {mode === 'account' && (
             <div className="space-y-3 p-4 rounded-xl border border-[#EBEAE6] bg-[#FBFBFA]">
-              <p className="text-xs text-[#64625D]">Create an account or sign in to save your design and track delivery.</p>
-              <AuthButtons />
+              <p className="text-xs text-[#64625D]">Sign in with Google to save your design and track delivery. New accounts are created automatically.</p>
+              <AuthButtons redirectTo="/configurator" />
               <p className="text-[10px] text-[#8A8782] text-center">Or continue as guest with the form below</p>
             </div>
           )}
