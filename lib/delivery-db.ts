@@ -1,3 +1,5 @@
+import { buildOrderDescription } from '@/lib/pricing';
+import type { SofaConfiguration } from '@/lib/sofa-data';
 import { createServiceClient } from '@/lib/supabase';
 import type { Order } from '@/lib/admin-types';
 import type {
@@ -8,18 +10,26 @@ import type {
 } from '@/lib/delivery-types';
 
 export function formatOrderDescription(configuration: Record<string, unknown>): string {
-  const parts: string[] = [];
-  if (configuration.model) parts.push(String(configuration.model));
-  if (configuration.categoryIndex !== undefined) {
-    parts.push(`category #${configuration.categoryIndex}`);
-  } else if (configuration.size) {
-    parts.push(String(configuration.size));
+  try {
+    return buildOrderDescription(configuration as unknown as SofaConfiguration);
+  } catch {
+    const parts: string[] = [];
+    if (configuration.model) parts.push(String(configuration.model));
+    if (configuration.categoryLabel) parts.push(String(configuration.categoryLabel));
+    else if (configuration.size) parts.push(String(configuration.size));
+    if (configuration.fabricQuality) parts.push(String(configuration.fabricQuality));
+    return parts.join(' · ') || 'Sofa order';
   }
-  if (configuration.fabricQuality) parts.push(String(configuration.fabricQuality));
-  if (configuration.fabricColorId) parts.push(String(configuration.fabricColorId));
-  if (configuration.cushionType) parts.push(`${configuration.cushionType} cushions`);
-  if (configuration.backStyle) parts.push(`${configuration.backStyle} back`);
-  return parts.join(' · ') || 'Sofa order';
+}
+
+export function getOrderPhone(configuration: Record<string, unknown>): string | null {
+  const phone = configuration.customerPhone;
+  return typeof phone === 'string' && phone.trim() ? phone.trim() : null;
+}
+
+export function getOrderDeliveryNotes(configuration: Record<string, unknown>): string | null {
+  const remarks = configuration.deliveryRemarks ?? configuration.deliveryLabel;
+  return typeof remarks === 'string' && remarks.trim() ? remarks.trim() : null;
 }
 
 export async function ensureDriverRecord(email: string, name: string): Promise<Driver> {
@@ -75,11 +85,16 @@ export async function fetchDeliveryJobsForDriver(driverId: string, date: string)
   return (data ?? []) as DeliveryJob[];
 }
 
+/** Website orders not yet on any delivery schedule (includes pending & paid). */
 export async function fetchUnscheduledPaidOrders(): Promise<Order[]> {
   const supabase = createServiceClient();
   const [{ data: orders, error: ordersError }, { data: jobs, error: jobsError }] = await Promise.all([
-    supabase.from('orders').select('*').eq('status', 'paid').order('created_at', { ascending: false }),
-    supabase.from('delivery_jobs').select('order_id').not('order_id', 'is', null),
+    supabase
+      .from('orders')
+      .select('*')
+      .in('status', ['pending', 'paid'])
+      .order('created_at', { ascending: false }),
+    supabase.from('delivery_jobs').select('order_id').not('order_id', 'is', null).neq('status', 'cancelled'),
   ]);
 
   if (ordersError) throw ordersError;
@@ -125,9 +140,10 @@ export async function createDeliveryJobFromOrder(
     delivery_date: deliveryDate,
     customer_name: order.customer_name,
     customer_email: order.customer_email,
+    customer_phone: getOrderPhone(order.configuration),
     delivery_address: order.shipping_address,
     items_description: formatOrderDescription(order.configuration),
-    notes: null,
+    notes: getOrderDeliveryNotes(order.configuration),
     source: 'website',
   });
 }

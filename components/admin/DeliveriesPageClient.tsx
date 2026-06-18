@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { formatOrderDescription } from '@/lib/delivery-db';
 import type { Order } from '@/lib/admin-types';
 import type { DeliveryJob, Driver } from '@/lib/delivery-types';
 
@@ -18,6 +19,18 @@ const statusLabel: Record<string, string> = {
   delivered: 'Delivered',
 };
 
+const orderStatusLabel: Record<string, string> = {
+  pending: 'Payment pending',
+  paid: 'Paid',
+};
+
+function orderOptionLabel(order: Order): string {
+  const date = new Date(order.created_at).toLocaleDateString('en-GB');
+  const total = `£${(order.total_pence / 100).toFixed(2)}`;
+  const status = orderStatusLabel[order.status] ?? order.status;
+  return `${order.customer_name} · ${total} · ${date} · ${status}`;
+}
+
 export function DeliveriesPageClient({
   initialDate,
   initialDrivers,
@@ -30,6 +43,8 @@ export function DeliveriesPageClient({
   const [unscheduled, setUnscheduled] = useState(initialUnscheduled);
   const [loading, setLoading] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState('');
+  const [assignDriverId, setAssignDriverId] = useState('');
   const [manual, setManual] = useState({
     driver_id: '',
     customer_name: '',
@@ -40,9 +55,14 @@ export function DeliveriesPageClient({
     notes: '',
   });
 
+  const selectedOrder = useMemo(
+    () => unscheduled.find((o) => o.id === selectedOrderId) ?? null,
+    [unscheduled, selectedOrderId],
+  );
+
   const refresh = useCallback(async (targetDate: string) => {
     setLoading(true);
-    const res = await fetch(`/api/admin/deliveries?date=${targetDate}`);
+    const res = await fetch(`/api/admin/deliveries?date=${targetDate}`, { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       setDrivers(data.drivers);
@@ -57,19 +77,26 @@ export function DeliveriesPageClient({
     await refresh(newDate);
   }
 
-  async function scheduleOrder(orderId: string, driverId: string) {
+  async function scheduleSelectedOrder(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedOrderId) return;
+
     setLoading(true);
     const res = await fetch('/api/admin/deliveries', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         type: 'order',
-        order_id: orderId,
-        driver_id: driverId || null,
+        order_id: selectedOrderId,
+        driver_id: assignDriverId || null,
         delivery_date: date,
       }),
     });
-    if (res.ok) await refresh(date);
+    if (res.ok) {
+      setSelectedOrderId('');
+      setAssignDriverId('');
+      await refresh(date);
+    }
     setLoading(false);
   }
 
@@ -137,7 +164,7 @@ export function DeliveriesPageClient({
         <div>
           <h1 className="text-3xl font-light tracking-tight">Delivery Schedule</h1>
           <p className="text-sm text-[#64625D] mt-1">
-            Allocate website orders to drivers and add manual deliveries
+            Select a website order, assign a driver, and schedule the delivery
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -148,20 +175,118 @@ export function DeliveriesPageClient({
             className="px-4 py-2.5 rounded-xl border border-[#EBEAE6] bg-white text-sm"
           />
           {loading && <Loader2 className="w-4 h-4 animate-spin text-[#8A8782]" />}
-          <button
-            type="button"
-            onClick={() => setShowManualForm((v) => !v)}
-            className="inline-flex items-center gap-2 bg-[#1C1B1A] text-white text-xs font-semibold uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-black"
-          >
-            <Plus className="w-4 h-4" />
-            Add delivery
-          </button>
         </div>
       </div>
 
+      <form onSubmit={scheduleSelectedOrder} className="bg-white border border-[#EBEAE6] rounded-2xl p-6 mb-8 space-y-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="font-semibold text-lg">Assign website order</h2>
+            <p className="text-sm text-[#64625D] mt-1">
+              {unscheduled.length} order{unscheduled.length === 1 ? '' : 's'} waiting to be scheduled
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowManualForm((v) => !v)}
+            className="inline-flex items-center gap-2 border border-[#EBEAE6] text-xs font-semibold uppercase tracking-widest px-4 py-2.5 rounded-xl hover:border-black"
+          >
+            <Plus className="w-4 h-4" />
+            Manual delivery
+          </button>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <label className="block text-sm md:col-span-2">
+            <span className="text-xs text-[#64625D] uppercase tracking-wider">Website order *</span>
+            <select
+              required
+              value={selectedOrderId}
+              onChange={(e) => setSelectedOrderId(e.target.value)}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl border border-[#EBEAE6] bg-[#FBFBFA]"
+            >
+              <option value="" disabled>
+                {unscheduled.length ? 'Select an order…' : 'No unscheduled orders'}
+              </option>
+              {unscheduled.map((order) => (
+                <option key={order.id} value={order.id}>
+                  {orderOptionLabel(order)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-sm">
+            <span className="text-xs text-[#64625D] uppercase tracking-wider">Assign driver</span>
+            <select
+              value={assignDriverId}
+              onChange={(e) => setAssignDriverId(e.target.value)}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl border border-[#EBEAE6] bg-[#FBFBFA]"
+            >
+              <option value="">Unassigned for now</option>
+              {drivers.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-sm">
+            <span className="text-xs text-[#64625D] uppercase tracking-wider">Delivery date</span>
+            <input
+              type="date"
+              value={date}
+              readOnly
+              className="mt-1 w-full px-3 py-2.5 rounded-xl border border-[#EBEAE6] bg-[#F4F3EF] text-[#64625D]"
+            />
+          </label>
+        </div>
+
+        {selectedOrder && (
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-5 grid sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-xs font-mono uppercase tracking-wider text-[#8A8782] mb-1">Customer</p>
+              <p className="font-semibold">{selectedOrder.customer_name}</p>
+              <p className="text-[#64625D]">{selectedOrder.customer_email}</p>
+              {typeof selectedOrder.configuration.customerPhone === 'string' && (
+                <p className="text-[#64625D]">{selectedOrder.configuration.customerPhone}</p>
+              )}
+            </div>
+            <div>
+              <p className="text-xs font-mono uppercase tracking-wider text-[#8A8782] mb-1">Order</p>
+              <p className="text-[#64625D]">{formatOrderDescription(selectedOrder.configuration)}</p>
+              <p className="font-mono font-semibold mt-1">£{(selectedOrder.total_pence / 100).toFixed(2)}</p>
+              <span className={`inline-block mt-2 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                selectedOrder.status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+              }`}>
+                {orderStatusLabel[selectedOrder.status] ?? selectedOrder.status}
+              </span>
+            </div>
+            <div className="sm:col-span-2">
+              <p className="text-xs font-mono uppercase tracking-wider text-[#8A8782] mb-1">Delivery address</p>
+              <p className="text-[#64625D] whitespace-pre-wrap">{selectedOrder.shipping_address}</p>
+            </div>
+            {typeof selectedOrder.configuration.deliveryLabel === 'string' && (
+              <div className="sm:col-span-2">
+                <p className="text-xs font-mono uppercase tracking-wider text-[#8A8782] mb-1">Customer&apos;s requested slot</p>
+                <p className="text-[#64625D]">{selectedOrder.configuration.deliveryLabel}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading || !selectedOrderId || unscheduled.length === 0}
+          className="bg-[#1C1B1A] disabled:opacity-50 text-white text-xs font-semibold uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-black"
+        >
+          Schedule delivery
+        </button>
+      </form>
+
       {showManualForm && (
         <form onSubmit={submitManual} className="bg-white border border-[#EBEAE6] rounded-2xl p-6 mb-8 space-y-4">
-          <h2 className="font-semibold">New manual delivery</h2>
+          <h2 className="font-semibold">Manual delivery (non-website)</h2>
+          <p className="text-sm text-[#64625D]">Use this only for deliveries not placed through the website.</p>
           <div className="grid md:grid-cols-2 gap-4">
             <label className="block text-sm">
               <span className="text-xs text-[#64625D] uppercase tracking-wider">Driver</span>
@@ -236,7 +361,7 @@ export function DeliveriesPageClient({
               disabled={loading}
               className="bg-[#1C1B1A] text-white text-xs font-semibold uppercase tracking-widest px-5 py-3 rounded-xl"
             >
-              Save delivery
+              Save manual delivery
             </button>
             <button
               type="button"
@@ -247,47 +372,6 @@ export function DeliveriesPageClient({
             </button>
           </div>
         </form>
-      )}
-
-      {unscheduled.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-lg font-semibold mb-4">Website orders — not yet scheduled</h2>
-          <div className="space-y-3">
-            {unscheduled.map((order) => (
-              <div key={order.id} className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-wrap gap-4 justify-between items-start">
-                <div>
-                  <p className="font-semibold">{order.customer_name}</p>
-                  <p className="text-sm text-[#64625D]">{order.shipping_address}</p>
-                  <p className="text-xs text-[#8A8782] mt-1">
-                    £{(order.total_pence / 100).toFixed(2)} · {new Date(order.created_at).toLocaleDateString('en-GB')}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    id={`assign-${order.id}`}
-                    defaultValue=""
-                    className="px-3 py-2 rounded-xl border border-[#EBEAE6] bg-white text-sm"
-                  >
-                    <option value="" disabled>Assign driver…</option>
-                    {drivers.map((d) => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const select = document.getElementById(`assign-${order.id}`) as HTMLSelectElement;
-                      scheduleOrder(order.id, select.value);
-                    }}
-                    className="bg-[#1C1B1A] text-white text-xs font-semibold uppercase tracking-wider px-4 py-2.5 rounded-xl"
-                  >
-                    Schedule
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       )}
 
       {unassigned.length > 0 && (
@@ -313,7 +397,7 @@ export function DeliveriesPageClient({
 
       {jobs.length === 0 && unscheduled.length === 0 && (
         <div className="bg-white border border-[#EBEAE6] rounded-2xl p-12 text-center text-[#64625D]">
-          No deliveries for this date. Add a manual delivery or schedule a website order.
+          No deliveries scheduled for this date and no website orders waiting.
         </div>
       )}
     </div>
