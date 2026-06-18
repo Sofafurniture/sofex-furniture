@@ -28,6 +28,7 @@ export interface DeliveryJob {
   driver_remarks: string | null;
   unable_to_deliver_notes: string | null;
   is_cash_order: boolean;
+  cash_due_pence: number | null;
   cash_received_pence: number | null;
   distance_miles: number | null;
   status: DeliveryStatus;
@@ -50,6 +51,7 @@ export interface CreateDeliveryJobInput {
   items_description?: string | null;
   notes?: string | null;
   is_cash_order?: boolean;
+  cash_due_pence?: number | null;
   source: DeliverySource;
 }
 
@@ -65,6 +67,7 @@ export interface UpdateDeliveryJobInput {
   driver_remarks?: string | null;
   unable_to_deliver_notes?: string | null;
   is_cash_order?: boolean;
+  cash_due_pence?: number | null;
   cash_received_pence?: number | null;
   distance_miles?: number | null;
   status?: DeliveryStatus;

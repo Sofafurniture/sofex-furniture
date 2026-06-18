@@ -46,6 +46,7 @@ export function DeliveriesPageClient({
   const [unscheduled, setUnscheduled] = useState(initialUnscheduled);
   const [loading, setLoading] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
+  const [manualError, setManualError] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState('');
   const [assignDriverId, setAssignDriverId] = useState('');
   const [manual, setManual] = useState({
@@ -57,6 +58,7 @@ export function DeliveriesPageClient({
     items_description: '',
     notes: '',
     is_cash_order: false,
+    cash_due_gbp: '',
   });
 
   const selectedOrder = useMemo(
@@ -124,7 +126,21 @@ export function DeliveriesPageClient({
 
   async function submitManual(e: React.FormEvent) {
     e.preventDefault();
+    setManualError(null);
+
+    if (manual.is_cash_order) {
+      const amount = parseFloat(manual.cash_due_gbp);
+      if (!manual.cash_due_gbp.trim() || Number.isNaN(amount) || amount < 0) {
+        setManualError('Please enter the cash amount the driver should collect.');
+        return;
+      }
+    }
+
     setLoading(true);
+    const cashDuePence = manual.is_cash_order
+      ? Math.round(parseFloat(manual.cash_due_gbp) * 100)
+      : null;
+
     const res = await fetch('/api/admin/deliveries', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -139,8 +155,12 @@ export function DeliveriesPageClient({
         items_description: manual.items_description || null,
         notes: manual.notes || null,
         is_cash_order: manual.is_cash_order,
+        cash_due_pence: cashDuePence,
       }),
     });
+
+    const data = (await res.json()) as { error?: string };
+
     if (res.ok) {
       setManual({
         driver_id: '',
@@ -151,9 +171,15 @@ export function DeliveriesPageClient({
         items_description: '',
         notes: '',
         is_cash_order: false,
+        cash_due_gbp: '',
       });
       setShowManualForm(false);
       await refresh(date);
+    } else {
+      setManualError(
+        data.error ??
+          'Failed to save delivery. Run migrations 006 and 007 in Supabase if this persists.',
+      );
     }
     setLoading(false);
   }
@@ -364,7 +390,11 @@ export function DeliveriesPageClient({
               <input
                 type="checkbox"
                 checked={manual.is_cash_order}
-                onChange={(e) => setManual((m) => ({ ...m, is_cash_order: e.target.checked }))}
+                onChange={(e) => setManual((m) => ({
+                  ...m,
+                  is_cash_order: e.target.checked,
+                  cash_due_gbp: e.target.checked ? m.cash_due_gbp : '',
+                }))}
                 className="rounded border-[#EBEAE6]"
               />
               <span>
@@ -372,7 +402,27 @@ export function DeliveriesPageClient({
                 <span className="text-xs text-[#8A8782]">Driver will record cash received on delivery</span>
               </span>
             </label>
+            {manual.is_cash_order && (
+              <label className="block text-sm md:col-span-2">
+                <span className="text-xs text-[#64625D] uppercase tracking-wider">Cash to collect (£) *</span>
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={manual.cash_due_gbp}
+                  onChange={(e) => setManual((m) => ({ ...m, cash_due_gbp: e.target.value }))}
+                  placeholder="e.g. 799.00"
+                  className="mt-1 w-full max-w-xs px-3 py-2.5 rounded-xl border border-[#EBEAE6] bg-[#FBFBFA]"
+                />
+              </label>
+            )}
           </div>
+          {manualError && (
+            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              {manualError}
+            </p>
+          )}
           <div className="flex gap-3">
             <button
               type="submit"
@@ -499,6 +549,11 @@ function JobList({
                 {job.unable_to_deliver_notes && (
                   <p className="text-xs text-amber-800 mt-2 bg-amber-50 border border-amber-100 rounded-lg p-2">
                     <span className="font-semibold">Unable to deliver:</span> {job.unable_to_deliver_notes}
+                  </p>
+                )}
+                {job.cash_due_pence != null && job.cash_due_pence > 0 && (
+                  <p className="text-sm font-mono font-semibold text-purple-800 mt-2">
+                    Cash to collect: £{(job.cash_due_pence / 100).toFixed(2)}
                   </p>
                 )}
                 {job.cash_received_pence != null && (

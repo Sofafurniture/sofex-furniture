@@ -124,30 +124,58 @@ export async function fetchUnscheduledPaidOrders(): Promise<Order[]> {
 export async function createDeliveryJob(input: CreateDeliveryJobInput): Promise<DeliveryJob> {
   const supabase = createServiceClient();
   const distanceMiles = await getDistanceFromHubForAddress(input.delivery_address);
+  const now = new Date().toISOString();
 
-  const { data, error } = await supabase
-    .from('delivery_jobs')
-    .insert({
-      order_id: input.order_id ?? null,
-      driver_id: input.driver_id ?? null,
-      delivery_date: input.delivery_date,
-      customer_name: input.customer_name,
-      customer_email: input.customer_email ?? null,
-      customer_phone: input.customer_phone ?? null,
-      delivery_address: input.delivery_address,
-      items_description: input.items_description ?? null,
-      notes: input.notes ?? null,
-      is_cash_order: input.is_cash_order ?? false,
-      distance_miles: distanceMiles,
-      source: input.source,
-      status: 'scheduled',
-      updated_at: new Date().toISOString(),
-    })
-    .select('*, driver:drivers(*)')
-    .single();
+  const baseRow = {
+    order_id: input.order_id ?? null,
+    driver_id: input.driver_id ?? null,
+    delivery_date: input.delivery_date,
+    customer_name: input.customer_name,
+    customer_email: input.customer_email ?? null,
+    customer_phone: input.customer_phone ?? null,
+    delivery_address: input.delivery_address,
+    items_description: input.items_description ?? null,
+    notes: input.notes ?? null,
+    source: input.source,
+    status: 'scheduled' as const,
+    updated_at: now,
+  };
 
-  if (error) throw error;
-  return data as DeliveryJob;
+  const extendedRow = {
+    ...baseRow,
+    is_cash_order: input.is_cash_order ?? false,
+    cash_due_pence: input.cash_due_pence ?? null,
+    distance_miles: distanceMiles,
+  };
+
+  const attempts = [extendedRow, baseRow];
+
+  let lastError: { message?: string } | null = null;
+  for (const row of attempts) {
+    const { data, error } = await supabase
+      .from('delivery_jobs')
+      .insert(row)
+      .select('*, driver:drivers(*)')
+      .single();
+
+    if (!error && data) {
+      return data as DeliveryJob;
+    }
+    lastError = error;
+    if (!isMissingColumnError(error)) break;
+  }
+
+  throw new Error(lastError?.message ?? 'Failed to create delivery job');
+}
+
+function isMissingColumnError(error: { message?: string; code?: string } | null): boolean {
+  if (!error) return false;
+  const msg = (error.message ?? '').toLowerCase();
+  return (
+    error.code === 'PGRST204' ||
+    msg.includes('column') ||
+    msg.includes('schema cache')
+  );
 }
 
 export async function createDeliveryJobFromOrder(
@@ -184,6 +212,7 @@ export async function updateDeliveryJob(id: string, input: UpdateDeliveryJobInpu
   if (input.driver_remarks !== undefined) payload.driver_remarks = input.driver_remarks;
   if (input.unable_to_deliver_notes !== undefined) payload.unable_to_deliver_notes = input.unable_to_deliver_notes;
   if (input.is_cash_order !== undefined) payload.is_cash_order = input.is_cash_order;
+  if (input.cash_due_pence !== undefined) payload.cash_due_pence = input.cash_due_pence;
   if (input.cash_received_pence !== undefined) payload.cash_received_pence = input.cash_received_pence;
   if (input.distance_miles !== undefined) payload.distance_miles = input.distance_miles;
   if (input.status !== undefined) {

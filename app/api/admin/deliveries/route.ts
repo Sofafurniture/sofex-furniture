@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       items_description?: string;
       notes?: string;
       is_cash_order?: boolean;
+      cash_due_pence?: number | null;
     };
 
     if (!body.delivery_date) {
@@ -61,6 +62,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Customer name and address are required' }, { status: 400 });
     }
 
+    if (body.is_cash_order && (body.cash_due_pence == null || body.cash_due_pence < 0)) {
+      return NextResponse.json(
+        { error: 'Please enter the cash amount the driver should collect.' },
+        { status: 400 },
+      );
+    }
+
     const job = await createDeliveryJob({
       driver_id: body.driver_id ?? null,
       delivery_date: body.delivery_date,
@@ -71,11 +79,13 @@ export async function POST(request: NextRequest) {
       items_description: body.items_description ?? null,
       notes: body.notes ?? null,
       is_cash_order: body.is_cash_order ?? false,
+      cash_due_pence: body.cash_due_pence ?? null,
       source: 'manual',
     });
 
     return NextResponse.json(job, { status: 201 });
   } catch (err) {
+    console.error('[admin/deliveries] POST failed:', err);
     const message = err instanceof Error ? err.message : 'Failed to create delivery';
     return NextResponse.json({ error: message }, { status: 500 });
   }

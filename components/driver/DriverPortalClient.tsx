@@ -76,9 +76,13 @@ export function DriverPortalClient({ driverName }: { driverName: string }) {
 
   function openDeliveredModal(job: DeliveryJob) {
     setRemarks(job.driver_remarks ?? '');
-    setCashReceived(
-      job.cash_received_pence != null ? (job.cash_received_pence / 100).toFixed(2) : '',
-    );
+    const defaultCash =
+      job.cash_received_pence != null
+        ? (job.cash_received_pence / 100).toFixed(2)
+        : job.cash_due_pence != null
+          ? (job.cash_due_pence / 100).toFixed(2)
+          : '';
+    setCashReceived(defaultCash);
     setError(null);
     setModal({ type: 'delivered', job });
   }
@@ -246,6 +250,11 @@ export function DriverPortalClient({ driverName }: { driverName: string }) {
                     <span className="text-xs text-[#64625D] uppercase tracking-wider flex items-center gap-1">
                       <Banknote className="w-3.5 h-3.5" />
                       Cash received (£) *
+                      {modal.job.cash_due_pence != null && modal.job.cash_due_pence > 0 && (
+                        <span className="normal-case text-purple-800 ml-1">
+                          (due: £{(modal.job.cash_due_pence / 100).toFixed(2)})
+                        </span>
+                      )}
                     </span>
                     <input
                       required
@@ -371,6 +380,12 @@ function DeliveryCard({
               </a>
             ))}
           </div>
+
+          {job.is_cash_order && job.cash_due_pence != null && job.cash_due_pence > 0 && (
+            <p className="text-sm font-mono font-semibold text-purple-800 mb-2">
+              Collect: £{(job.cash_due_pence / 100).toFixed(2)} cash
+            </p>
+          )}
 
           {job.items_description && (
             <p className="flex items-start gap-2 text-sm mb-2">
