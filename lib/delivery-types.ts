@@ -1,4 +1,9 @@
-export type DeliveryStatus = 'scheduled' | 'out_for_delivery' | 'delivered' | 'cancelled';
+export type DeliveryStatus =
+  | 'scheduled'
+  | 'out_for_delivery'
+  | 'delivered'
+  | 'cancelled'
+  | 'unable_to_deliver';
 export type DeliverySource = 'website' | 'manual';
 
 export interface Driver {
@@ -20,6 +25,11 @@ export interface DeliveryJob {
   delivery_address: string;
   items_description: string | null;
   notes: string | null;
+  driver_remarks: string | null;
+  unable_to_deliver_notes: string | null;
+  is_cash_order: boolean;
+  cash_received_pence: number | null;
+  distance_miles: number | null;
   status: DeliveryStatus;
   source: DeliverySource;
   sort_order: number;
@@ -39,6 +49,7 @@ export interface CreateDeliveryJobInput {
   delivery_address: string;
   items_description?: string | null;
   notes?: string | null;
+  is_cash_order?: boolean;
   source: DeliverySource;
 }
 
@@ -51,5 +62,17 @@ export interface UpdateDeliveryJobInput {
   delivery_address?: string;
   items_description?: string | null;
   notes?: string | null;
+  driver_remarks?: string | null;
+  unable_to_deliver_notes?: string | null;
+  is_cash_order?: boolean;
+  cash_received_pence?: number | null;
+  distance_miles?: number | null;
   status?: DeliveryStatus;
+}
+
+export interface DriverDeliveryUpdateInput {
+  status: 'out_for_delivery' | 'delivered' | 'unable_to_deliver';
+  driver_remarks?: string | null;
+  unable_to_deliver_notes?: string | null;
+  cash_received_pence?: number | null;
 }

@@ -3,6 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { formatOrderDescription } from '@/lib/delivery-db';
+import { formatDistanceFromHub } from '@/lib/delivery-distance';
+import { buildMapLinks } from '@/lib/map-links';
 import type { Order } from '@/lib/admin-types';
 import type { DeliveryJob, Driver } from '@/lib/delivery-types';
 
@@ -17,6 +19,7 @@ const statusLabel: Record<string, string> = {
   scheduled: 'Scheduled',
   out_for_delivery: 'Out for delivery',
   delivered: 'Delivered',
+  unable_to_deliver: 'Unable to deliver',
 };
 
 const orderStatusLabel: Record<string, string> = {
@@ -53,6 +56,7 @@ export function DeliveriesPageClient({
     delivery_address: '',
     items_description: '',
     notes: '',
+    is_cash_order: false,
   });
 
   const selectedOrder = useMemo(
@@ -134,6 +138,7 @@ export function DeliveriesPageClient({
         delivery_address: manual.delivery_address,
         items_description: manual.items_description || null,
         notes: manual.notes || null,
+        is_cash_order: manual.is_cash_order,
       }),
     });
     if (res.ok) {
@@ -145,6 +150,7 @@ export function DeliveriesPageClient({
         delivery_address: '',
         items_description: '',
         notes: '',
+        is_cash_order: false,
       });
       setShowManualForm(false);
       await refresh(date);
@@ -354,6 +360,18 @@ export function DeliveriesPageClient({
                 className="mt-1 w-full px-3 py-2.5 rounded-xl border border-[#EBEAE6] bg-[#FBFBFA]"
               />
             </label>
+            <label className="flex items-center gap-3 text-sm md:col-span-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={manual.is_cash_order}
+                onChange={(e) => setManual((m) => ({ ...m, is_cash_order: e.target.checked }))}
+                className="rounded border-[#EBEAE6]"
+              />
+              <span>
+                <span className="text-xs text-[#64625D] uppercase tracking-wider block">Cash order</span>
+                <span className="text-xs text-[#8A8782]">Driver will record cash received on delivery</span>
+              </span>
+            </label>
           </div>
           <div className="flex gap-3">
             <button
@@ -417,53 +435,102 @@ function JobList({
 }) {
   return (
     <div className="space-y-3">
-      {jobs.map((job) => (
-        <div key={job.id} className="bg-white border border-[#EBEAE6] rounded-2xl p-5">
-          <div className="flex flex-wrap gap-4 justify-between items-start">
-            <div className="flex-1 min-w-[200px]">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="font-semibold">{job.customer_name}</p>
-                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  job.source === 'website' ? 'bg-blue-100 text-blue-800' : 'bg-[#F4F3EF] text-[#64625D]'
-                }`}>
-                  {job.source}
-                </span>
-                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  job.status === 'delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-[#F4F3EF] text-[#64625D]'
-                }`}>
-                  {statusLabel[job.status] ?? job.status}
-                </span>
+      {jobs.map((job) => {
+        const mapLinks = buildMapLinks(job.delivery_address);
+        return (
+          <div key={job.id} className="bg-white border border-[#EBEAE6] rounded-2xl p-5">
+            <div className="flex flex-wrap gap-4 justify-between items-start">
+              <div className="flex-1 min-w-[200px]">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <p className="font-semibold">{job.customer_name}</p>
+                  <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    job.source === 'website' ? 'bg-blue-100 text-blue-800' : 'bg-[#F4F3EF] text-[#64625D]'
+                  }`}>
+                    {job.source}
+                  </span>
+                  <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    job.status === 'delivered'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : job.status === 'unable_to_deliver'
+                        ? 'bg-amber-100 text-amber-800'
+                        : job.status === 'out_for_delivery'
+                          ? 'bg-blue-50 text-blue-800'
+                          : 'bg-[#F4F3EF] text-[#64625D]'
+                  }`}>
+                    {statusLabel[job.status] ?? job.status}
+                  </span>
+                  {job.is_cash_order && (
+                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                      Cash
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-emerald-800 font-medium mb-2">
+                  {formatDistanceFromHub(job.distance_miles)}
+                </p>
+                <p className="text-sm text-[#64625D] whitespace-pre-wrap">{job.delivery_address}</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {mapLinks.map((link) => (
+                    <a
+                      key={link.id}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] uppercase tracking-wider text-blue-700 underline"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+                {job.items_description && (
+                  <p className="text-sm mt-2">{job.items_description}</p>
+                )}
+                {job.customer_phone && <p className="text-sm text-[#8A8782] mt-1">{job.customer_phone}</p>}
+                {job.notes && (
+                  <p className="text-xs text-[#8A8782] mt-2">
+                    <span className="font-semibold">Admin notes:</span> {job.notes}
+                  </p>
+                )}
+                {job.driver_remarks && (
+                  <p className="text-xs text-[#64625D] mt-2 bg-[#F4F3EF] rounded-lg p-2">
+                    <span className="font-semibold">Driver remarks:</span> {job.driver_remarks}
+                  </p>
+                )}
+                {job.unable_to_deliver_notes && (
+                  <p className="text-xs text-amber-800 mt-2 bg-amber-50 border border-amber-100 rounded-lg p-2">
+                    <span className="font-semibold">Unable to deliver:</span> {job.unable_to_deliver_notes}
+                  </p>
+                )}
+                {job.cash_received_pence != null && (
+                  <p className="text-sm font-mono font-semibold text-emerald-800 mt-2">
+                    Cash received: £{(job.cash_received_pence / 100).toFixed(2)}
+                  </p>
+                )}
               </div>
-              <p className="text-sm text-[#64625D] whitespace-pre-wrap">{job.delivery_address}</p>
-              {job.items_description && (
-                <p className="text-sm mt-2">{job.items_description}</p>
-              )}
-              {job.customer_phone && <p className="text-sm text-[#8A8782] mt-1">{job.customer_phone}</p>}
-              {job.notes && <p className="text-xs text-[#8A8782] mt-1 italic">{job.notes}</p>}
-            </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={job.driver_id ?? ''}
-                onChange={(e) => onAssign(job.id, e.target.value)}
-                className="px-3 py-2 rounded-xl border border-[#EBEAE6] bg-[#FBFBFA] text-sm"
-              >
-                <option value="">Unassigned</option>
-                {drivers.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => onRemove(job.id)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                title="Remove"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <select
+                  value={job.driver_id ?? ''}
+                  onChange={(e) => onAssign(job.id, e.target.value)}
+                  className="px-3 py-2 rounded-xl border border-[#EBEAE6] bg-[#FBFBFA] text-sm"
+                >
+                  <option value="">Unassigned</option>
+                  {drivers.map((d) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => onRemove(job.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                  title="Remove"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

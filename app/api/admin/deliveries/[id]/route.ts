@@ -20,7 +20,17 @@ export async function PATCH(
       delivery_address: body.delivery_address as string | undefined,
       items_description: body.items_description as string | null | undefined,
       notes: body.notes as string | null | undefined,
-      status: body.status as 'scheduled' | 'out_for_delivery' | 'delivered' | 'cancelled' | undefined,
+      driver_remarks: body.driver_remarks as string | null | undefined,
+      unable_to_deliver_notes: body.unable_to_deliver_notes as string | null | undefined,
+      is_cash_order: body.is_cash_order as boolean | undefined,
+      cash_received_pence: body.cash_received_pence as number | null | undefined,
+      status: body.status as
+        | 'scheduled'
+        | 'out_for_delivery'
+        | 'delivered'
+        | 'cancelled'
+        | 'unable_to_deliver'
+        | undefined,
     });
 
     return NextResponse.json(job);

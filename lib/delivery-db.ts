@@ -1,3 +1,4 @@
+import { getDistanceFromHubForAddress } from '@/lib/delivery-distance';
 import { buildOrderDescription } from '@/lib/pricing';
 import type { SofaConfiguration } from '@/lib/sofa-data';
 import { createServiceClient } from '@/lib/supabase';
@@ -56,6 +57,22 @@ export async function fetchAllDrivers(): Promise<Driver[]> {
   return (data ?? []) as Driver[];
 }
 
+export async function enrichDeliveryJobs(jobs: DeliveryJob[]): Promise<DeliveryJob[]> {
+  return Promise.all(
+    jobs.map(async (job) => {
+      if (job.distance_miles != null) return job;
+      const miles = await getDistanceFromHubForAddress(job.delivery_address);
+      if (miles == null) return job;
+      try {
+        const updated = await updateDeliveryJob(job.id, { distance_miles: miles });
+        return updated;
+      } catch {
+        return { ...job, distance_miles: miles };
+      }
+    }),
+  );
+}
+
 export async function fetchDeliveryJobsByDate(date: string): Promise<DeliveryJob[]> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
@@ -67,7 +84,7 @@ export async function fetchDeliveryJobsByDate(date: string): Promise<DeliveryJob
     .order('created_at');
 
   if (error) throw error;
-  return (data ?? []) as DeliveryJob[];
+  return enrichDeliveryJobs((data ?? []) as DeliveryJob[]);
 }
 
 export async function fetchDeliveryJobsForDriver(driverId: string, date: string): Promise<DeliveryJob[]> {
@@ -82,7 +99,7 @@ export async function fetchDeliveryJobsForDriver(driverId: string, date: string)
     .order('created_at');
 
   if (error) throw error;
-  return (data ?? []) as DeliveryJob[];
+  return enrichDeliveryJobs((data ?? []) as DeliveryJob[]);
 }
 
 /** Website orders not yet on any delivery schedule (includes pending & paid). */
@@ -106,6 +123,8 @@ export async function fetchUnscheduledPaidOrders(): Promise<Order[]> {
 
 export async function createDeliveryJob(input: CreateDeliveryJobInput): Promise<DeliveryJob> {
   const supabase = createServiceClient();
+  const distanceMiles = await getDistanceFromHubForAddress(input.delivery_address);
+
   const { data, error } = await supabase
     .from('delivery_jobs')
     .insert({
@@ -118,6 +137,8 @@ export async function createDeliveryJob(input: CreateDeliveryJobInput): Promise<
       delivery_address: input.delivery_address,
       items_description: input.items_description ?? null,
       notes: input.notes ?? null,
+      is_cash_order: input.is_cash_order ?? false,
+      distance_miles: distanceMiles,
       source: input.source,
       status: 'scheduled',
       updated_at: new Date().toISOString(),
@@ -160,6 +181,11 @@ export async function updateDeliveryJob(id: string, input: UpdateDeliveryJobInpu
   if (input.delivery_address !== undefined) payload.delivery_address = input.delivery_address;
   if (input.items_description !== undefined) payload.items_description = input.items_description;
   if (input.notes !== undefined) payload.notes = input.notes;
+  if (input.driver_remarks !== undefined) payload.driver_remarks = input.driver_remarks;
+  if (input.unable_to_deliver_notes !== undefined) payload.unable_to_deliver_notes = input.unable_to_deliver_notes;
+  if (input.is_cash_order !== undefined) payload.is_cash_order = input.is_cash_order;
+  if (input.cash_received_pence !== undefined) payload.cash_received_pence = input.cash_received_pence;
+  if (input.distance_miles !== undefined) payload.distance_miles = input.distance_miles;
   if (input.status !== undefined) {
     payload.status = input.status;
     if (input.status === 'delivered') payload.delivered_at = new Date().toISOString();

@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       delivery_address?: string;
       items_description?: string;
       notes?: string;
+      is_cash_order?: boolean;
     };
 
     if (!body.delivery_date) {
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
       delivery_address: body.delivery_address,
       items_description: body.items_description ?? null,
       notes: body.notes ?? null,
+      is_cash_order: body.is_cash_order ?? false,
       source: 'manual',
     });
 
