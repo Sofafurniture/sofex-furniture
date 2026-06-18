@@ -8,7 +8,8 @@ export default async function AdminOrdersPage() {
   if (isSupabaseConfigured) {
     try {
       orders = await fetchAllOrders();
-    } catch {
+    } catch (error) {
+      console.error('[admin/orders] Failed to load orders:', error);
       orders = [];
     }
   }

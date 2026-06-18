@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Download, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Download, Loader2, Search } from 'lucide-react';
 import type { Order } from '@/lib/admin-types';
 
 interface OrdersPageClientProps {
@@ -9,9 +9,39 @@ interface OrdersPageClientProps {
 }
 
 export function OrdersPageClient({ initialOrders }: OrdersPageClientProps) {
-  const [orders] = useState(initialOrders);
+  const [orders, setOrders] = useState(initialOrders);
+  const [loading, setLoading] = useState(initialOrders.length === 0);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [exportDate, setExportDate] = useState(new Date().toISOString().slice(0, 10));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshOrders() {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const res = await fetch('/api/admin/orders', { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error(res.status === 401 ? 'Session expired — please sign in again.' : 'Failed to load orders');
+        }
+        const data = (await res.json()) as Order[];
+        if (!cancelled) setOrders(data);
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(err instanceof Error ? err.message : 'Failed to load orders');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    refreshOrders();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = orders.filter((o) => {
     const q = search.toLowerCase();
@@ -28,7 +58,9 @@ export function OrdersPageClient({ initialOrders }: OrdersPageClientProps) {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
         <div>
           <h1 className="text-3xl font-light tracking-tight">Orders & Customers</h1>
-          <p className="text-sm text-[#64625D] mt-1">{orders.length} total orders — all customer details below</p>
+          <p className="text-sm text-[#64625D] mt-1">
+            {loading ? 'Loading orders…' : `${orders.length} total orders — all customer details below`}
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -48,6 +80,12 @@ export function OrdersPageClient({ initialOrders }: OrdersPageClientProps) {
         </div>
       </div>
 
+      {loadError && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-900">
+          {loadError}
+        </div>
+      )}
+
       <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8A8782]" />
         <input
@@ -58,7 +96,12 @@ export function OrdersPageClient({ initialOrders }: OrdersPageClientProps) {
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="bg-white border border-[#EBEAE6] rounded-2xl p-12 text-center">
+          <Loader2 className="w-6 h-6 animate-spin text-[#8A8782] mx-auto mb-3" />
+          <p className="text-[#64625D]">Loading orders…</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="bg-white border border-[#EBEAE6] rounded-2xl p-12 text-center">
           <p className="text-[#64625D]">No orders found.</p>
         </div>
