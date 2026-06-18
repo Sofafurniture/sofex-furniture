@@ -1,82 +1,57 @@
-const badgeClass =
-  'inline-flex items-center justify-center h-9 px-3 rounded-lg border border-[#EBEAE6] bg-white shadow-sm';
+import Image from 'next/image';
 
-function StripeBadge() {
-  return (
-    <span className={badgeClass} title="Stripe">
-      <svg viewBox="0 0 60 25" className="h-4 w-auto" aria-label="Stripe">
-        <path
-          fill="#635BFF"
-          d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a10.2 10.2 0 0 1-4.56 1.02c-4.01 0-6.83-2.5-6.83-7.48 0-4.63 2.72-7.44 6.5-7.44 3.96 0 5.74 2.73 5.74 6.86 0 .68-.06 1.35-.17 2.12Zm-8.06-2.53h4.99c-.03-1.64-.9-2.53-2.4-2.53-1.42 0-2.4.98-2.59 2.53Z"
-        />
-        <path
-          fill="#635BFF"
-          d="M40.95 20.3c-1.44 0-2.64-.6-3.14-1.54l-.03 1.3h-3.05V6.6h3.21v7.1c0-1.05.86-1.73 2.02-1.73 1.66 0 2.55 1.28 2.55 3.48 0 2.28-.98 3.85-2.56 3.85ZM47.93 6.6h3.21v13.46h-3.21V6.6Zm0-3.65h3.21v2.34h-3.21V2.95ZM33.1 20.06h-3.21V6.6H33.1v1.37c.64-1.05 1.8-1.63 3.14-1.63 2.73 0 4.35 2.17 4.35 5.58 0 3.52-1.7 5.74-4.49 5.74Zm-.19-3.1c1.42 0 2.17-1.17 2.17-2.64 0-1.4-.75-2.48-2.17-2.48-1.42 0-2.17 1.08-2.17 2.48 0 1.47.75 2.64 2.17 2.64ZM21.1 20.06h-3.21V6.6h3.21v1.37c.64-1.05 1.8-1.63 3.14-1.63 2.73 0 4.35 2.17 4.35 5.58 0 3.52-1.7 5.74-4.49 5.74Zm-.19-3.1c1.42 0 2.17-1.17 2.17-2.64 0-1.4-.75-2.48-2.17-2.48-1.42 0-2.17 1.08-2.17 2.48 0 1.47.75 2.64 2.17 2.64ZM9.5 20.3c-2.4 0-4.28-1.2-4.28-3.44 0-2.17 1.7-3.25 4.72-3.52l1.7-.12c.79-.06 1.1-.3 1.1-.75 0-.56-.64-.9-1.73-.9-1.17 0-2.02.45-2.21 1.28H5.29c.26-2.17 2.21-3.48 4.94-3.48 2.96 0 4.68 1.35 4.68 3.7v5.43h-3.05l-.03-1.24c-.6.9-1.8 1.54-3.33 1.54Zm.56-2.48c1.35 0 2.25-.75 2.25-1.8v-.3l-1.54.12c-1.05.08-1.58.37-1.58.98 0 .6.56.98 1.42.98Z"
-        />
-      </svg>
-    </span>
-  );
-}
+const badge =
+  'inline-flex items-center justify-center h-10 px-3 rounded-lg border border-[#E8E6E1] bg-white';
 
-function ApplePayBadge() {
-  return (
-    <span className={badgeClass} title="Apple Pay">
-      <svg viewBox="0 0 50 20" className="h-4 w-auto" aria-label="Apple Pay">
-        <path
-          fill="#000"
-          d="M8.5 3.2c-.5.6-1.3 1.1-2.1 1-.1-.8.3-1.7.8-2.2.5-.6 1.4-1 2.1-1 .1.9-.2 1.7-.8 2.2Zm.8 1.3c-1.2-.1-2.2.7-2.8.7-.6 0-1.4-.6-2.3-.6-1.2 0-2.3.7-2.9 1.8-1.3 2.2-.3 5.4.9 7.2.6.9 1.3 1.9 2.3 1.9.9 0 1.3-.6 2.4-.6 1.1 0 1.4.6 2.4.6 1 0 1.6-.9 2.2-1.8.7-1 .9-2 1-2.1-.1 0-1.9-.7-1.9-2.9 0-1.8 1.5-2.7 1.6-2.8-1-.7-2.4-1.1-2.9-1.1ZM18.2 4.5v12.4h2.1v-4.2h2.9c2.7 0 4.6-1.8 4.6-4.1 0-2.3-1.8-4.1-4.5-4.1h-5.1Zm2.1 1.8h2.4c1.9 0 3 1 3 2.3s-1.1 2.3-3 2.3h-2.4V6.3Zm11.2 10.8c1.3 0 2.5-.7 3.1-1.8h.1v1.7h2V9.5c0-2.2-1.8-3.6-4.5-3.6-2.5 0-4.3 1.4-4.4 3.4h2c.2-.9 1-1.5 2.2-1.5 1.4 0 2.2.7 2.2 1.9v.8l-2.9.2c-2.7.2-4.1 1.3-4.1 3.1 0 1.9 1.5 3.1 3.3 3.1Zm.6-1.7c-1.2 0-2-.6-2-1.5 0-.9.7-1.4 2.1-1.5l2.6-.2v.8c0 1.3-1.1 2.4-2.7 2.4ZM38.5 17.2c2.5 0 3.9-1.3 4.5-3.3l-2.1-.5c-.4 1.2-1.3 1.9-2.4 1.9-1.6 0-2.6-1.2-2.6-3.2 0-2.1 1-3.3 2.6-3.3 1.1 0 1.9.7 2.3 1.9l2.1-.5c-.5-2-1.9-3.3-4.4-3.3-2.8 0-4.8 2-4.8 5.2 0 3.2 2 5.1 4.8 5.1Z"
-        />
-      </svg>
-    </span>
-  );
-}
-
-function GooglePayBadge() {
-  return (
-    <span className={badgeClass} title="Google Pay">
-      <svg viewBox="0 0 52 20" className="h-4 w-auto" aria-label="Google Pay">
-        <path fill="#5F6368" d="M9.2 10.1V7.5H15c.1.5.2 1.1.2 1.7 0 2.1-.6 4.7-2.5 6.5-1.8 1.9-4.1 2.9-7.1 2.9C2.6 18.6 0 14.6 0 10.1S2.6 1.6 5.6 1.6c1.7 0 2.9.7 3.8 1.3l-1.6 1.6C7.2 3.7 6.5 3.3 5.6 3.3 3.5 3.3 2 5.9 2 10.1s1.5 6.8 3.6 6.8c1.5 0 2.3-.6 2.9-1.2.9-.9 1.2-2.2 1.2-3.3 0-.3 0-.6-.1-.9H9.2v-.4Z" />
-        <path fill="#4285F4" d="M26.8 8.5c0 .5 0 .9-.1 1.3h-6.6v-2.5h3.9c-.2-.9-.8-1.8-1.7-2.3l-1.6 1.6c.9.7 1.5 1.8 1.5 3.1 0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4c1.1 0 2 .4 2.7 1.1l1.6-1.6c-1.1-1-2.6-1.7-4.3-1.7-3.6 0-6.6 2.9-6.6 6.6s3 6.6 6.6 6.6c3.4 0 5.6-2.4 5.6-5.8Z" />
-        <path fill="#5F6368" d="M38.2 7.2c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4Zm0 6.5c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5 2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5ZM48.5 7.4l-3.4 7.8h-1.5l1.3-2.8-2.2-5h1.6l1.4 3.7 1.4-3.7h1.4Z" />
-      </svg>
-    </span>
-  );
-}
-
-function KlarnaBadge() {
-  return (
-    <span className={`${badgeClass} bg-[#FFB3C7] border-[#FFB3C7]`} title="Klarna">
-      <svg viewBox="0 0 60 16" className="h-3.5 w-auto" aria-label="Klarna">
-        <path
-          fill="#0A0B09"
-          d="M8.2 1.2H5.9v13.6h2.3V1.2Zm6.8 0H12.7v13.6h2.3V8.4l4.5 6.4h2.8l-4.8-6.7c2.5-.5 4.2-2.4 4.2-5.1 0-3.4-2.5-5.8-6.4-5.8h-4.3Zm4.2 2.1c1.8 0 2.9 1 2.9 2.6 0 1.7-1.1 2.7-2.9 2.7h-1.9V3.3h1.9ZM35.5 1.2h-2.3v13.6h2.3V1.2Zm8.1 0h-6.5v2h4.2v3.4h-3.8v2h3.8v3.2h-4.2v2h6.5V1.2ZM54.2 1.2l-4.8 13.6h2.4l.9-2.7h5.1l.9 2.7h2.5L55.4 1.2h-1.2Zm-2.2 8.5 1.8-5.3 1.8 5.3h-3.6Z"
-        />
-      </svg>
-    </span>
-  );
-}
-
-function ClearpayBadge() {
-  return (
-    <span className={`${badgeClass} bg-[#B2FCE4] border-[#B2FCE4]`} title="Clearpay">
-      <svg viewBox="0 0 72 16" className="h-3.5 w-auto" aria-label="Clearpay">
-        <path
-          fill="#000"
-          d="M4.2 1.2 0 14.8h2.6l.8-3h4.4l.8 3h2.7L6.5 1.2H4.2Zm-.2 7.5 1.5-5.5 1.5 5.5H4ZM18.2 1.2h-2.5v13.6h2.5V1.2Zm8.4 0c-3.6 0-6.2 2.6-6.2 6.8s2.6 6.8 6.2 6.8 6.2-2.6 6.2-6.8-2.6-6.8-6.2-6.8Zm0 2.2c2.2 0 3.7 1.7 3.7 4.6 0 2.9-1.5 4.6-3.7 4.6s-3.7-1.7-3.7-4.6c0-2.9 1.5-4.6 3.7-4.6ZM40.8 1.2l-4.2 13.6h2.4l.8-2.7h5l.8 2.7h2.5l-4.2-13.6h-2.1Zm-.3 8.3 1.6-5.2 1.6 5.2h-3.2ZM54.8 1.2h-2.5v8.1l-4.5-8.1h-2.4v13.6h2.5V6.7l4.5 8.1h2.4V1.2Zm10.2 0h-6.3v2h3.9v3.3h-3.5v2h3.5v3.3h-3.9v2h6.3V1.2Z"
-        />
-      </svg>
-    </span>
-  );
-}
+/** Official brand marks via Wikimedia Commons (reliable, readable logos). */
+const PAYMENT_MARKS = [
+  {
+    name: 'Stripe',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg',
+    width: 56,
+    height: 24,
+  },
+  {
+    name: 'Apple Pay',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg',
+    width: 44,
+    height: 18,
+  },
+  {
+    name: 'Google Pay',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg',
+    width: 48,
+    height: 20,
+  },
+  {
+    name: 'Klarna',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Klarna_Payment_Badge.svg',
+    width: 52,
+    height: 22,
+  },
+  {
+    name: 'Clearpay',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Afterpay_logo.svg',
+    width: 72,
+    height: 18,
+  },
+] as const;
 
 export function PaymentBadges() {
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
-      <StripeBadge />
-      <ApplePayBadge />
-      <GooglePayBadge />
-      <KlarnaBadge />
-      <ClearpayBadge />
+      {PAYMENT_MARKS.map((mark) => (
+        <span key={mark.name} className={badge} title={mark.name}>
+          <Image
+            src={mark.src}
+            alt={mark.name}
+            width={mark.width}
+            height={mark.height}
+            className="h-5 w-auto object-contain"
+            unoptimized
+          />
+        </span>
+      ))}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildOrderDescription, calculatePrice } from '@/lib/pricing';
 import { formatDeliverySlot, isDeliveryDateAllowed } from '@/lib/delivery-slots';
+import { getDeliveryZone } from '@/lib/delivery-zone';
 import { applyPercentDiscount, FIRST_ORDER_DISCOUNT_PERCENT, validateDiscountCode } from '@/lib/discount';
 import { getStripe, isStripeConfigured } from '@/lib/stripe';
 import { createServiceClient, isSupabaseConfigured } from '@/lib/supabase';
@@ -57,8 +58,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const zone = await getDeliveryZone(postcode);
+    if (zone.status === 'unknown') {
+      return NextResponse.json(
+        { error: 'Invalid postcode', message: zone.message || 'Please enter a valid UK postcode.' },
+        { status: 400 },
+      );
+    }
+
     const prices = calculatePrice(config);
     let totalPence = prices.total * 100;
+    const deliverySurchargePence = zone.surchargeGbp * 100;
+    totalPence += deliverySurchargePence;
     let discountApplied = false;
 
     if (discountCode?.trim()) {
@@ -84,6 +95,9 @@ export async function POST(request: NextRequest) {
       checkoutMode,
       discountCode: discountCode?.trim().toUpperCase() ?? '',
       discountApplied,
+      deliveryZone: zone.status,
+      deliveryDistanceMiles: zone.distanceMiles,
+      deliverySurchargeGbp: zone.surchargeGbp,
     };
 
     if (!isStripeConfigured || !isSupabaseConfigured) {
@@ -118,7 +132,9 @@ export async function POST(request: NextRequest) {
     }
 
     const stripe = getStripe();
-    const description = `${buildOrderDescription(config)} · Delivery: ${deliveryLabel}`;
+    const description = `${buildOrderDescription(config)} · Delivery: ${deliveryLabel}${
+      zone.surchargeGbp > 0 ? ` · Out-of-zone delivery +£${zone.surchargeGbp}` : ' · Free delivery'
+    }`;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { calculatePrice } from '@/lib/pricing';
 import { useSofaStore } from '@/store/sofa-store';
 import { getDeliveryDays, looksLikeUkPostcode } from '@/lib/delivery-slots';
+import type { DeliveryZoneResult } from '@/lib/delivery-zone';
 import { DELIVERY_PROMISE } from '@/lib/configurator-catalog';
 import { AuthButtons } from '@/components/AuthButtons';
 import { PaymentBadges } from '@/components/PaymentBadges';
@@ -32,10 +33,14 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
   const [discountCode, setDiscountCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [zoneLoading, setZoneLoading] = useState(false);
+  const [deliveryZone, setDeliveryZone] = useState<DeliveryZoneResult | null>(null);
 
   const deliveryDays = useMemo(() => getDeliveryDays(), []);
-  const monthly = useMemo(() => (total / 12).toFixed(2), [total]);
   const selectedDay = deliveryDays.find((d) => d.date === deliveryDate);
+  const deliverySurcharge = deliveryZone?.surchargeGbp ?? 0;
+  const checkoutTotal = total + deliverySurcharge;
+  const monthly = useMemo(() => (checkoutTotal / 12).toFixed(2), [checkoutTotal]);
 
   useEffect(() => {
     if (!isOpen || !isSupabaseConfigured) return;
@@ -65,6 +70,35 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
     }
   }, [deliveryDays, deliveryDate]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setDeliveryZone(null);
+      return;
+    }
+
+    const trimmed = postcode.trim();
+    if (!looksLikeUkPostcode(trimmed)) {
+      setDeliveryZone(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setZoneLoading(true);
+      try {
+        const res = await fetch(`/api/delivery-zone?postcode=${encodeURIComponent(trimmed)}`);
+        const data = (await res.json()) as DeliveryZoneResult & { error?: string };
+        if (res.ok) setDeliveryZone(data);
+        else setDeliveryZone(null);
+      } catch {
+        setDeliveryZone(null);
+      } finally {
+        setZoneLoading(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [postcode, isOpen]);
+
   if (!isOpen) return null;
 
   async function handleCheckout(e: React.FormEvent) {
@@ -73,7 +107,13 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
     setError(null);
 
     if (!looksLikeUkPostcode(postcode)) {
-      setError('Please enter a valid UK postcode for delivery within 50 miles of London.');
+      setError('Please enter a valid UK postcode.');
+      setLoading(false);
+      return;
+    }
+
+    if (!deliveryZone || deliveryZone.status === 'unknown') {
+      setError('Please enter a valid UK postcode so we can check delivery eligibility.');
       setLoading(false);
       return;
     }
@@ -134,7 +174,11 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
             <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-700 font-semibold">Secure checkout</p>
             <h3 className="text-xl font-semibold text-black tracking-tight mt-1">Complete your bespoke order</h3>
             <p className="text-xs text-[#64625D] mt-1">
-              £{total} total · or £{monthly}/mo · {DELIVERY_PROMISE.headline}
+              £{checkoutTotal} total
+              {deliverySurcharge > 0 && (
+                <span className="text-amber-800"> (includes £{deliverySurcharge} delivery)</span>
+              )}
+              {' · '}or £{monthly}/mo · {DELIVERY_PROMISE.headline}
             </p>
           </div>
 
@@ -200,9 +244,6 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
             <p className="text-xs font-mono uppercase tracking-wider text-[#64625D] flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5" /> Delivery address
             </p>
-            <p className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
-              We deliver within <strong>50 miles of London</strong>. Your sofa arrives as one piece and is assembled in your home.
-            </p>
             <textarea
               required
               rows={2}
@@ -215,9 +256,26 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
               required
               value={postcode}
               onChange={(e) => setPostcode(e.target.value.toUpperCase())}
-              placeholder="Postcode * (e.g. SW1A 1AA)"
+              placeholder="Postcode * (e.g. IG11 8RG)"
               className="w-full px-4 py-3 rounded-xl border border-[#EBEAE6] bg-[#FBFBFA] text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
             />
+            {zoneLoading && (
+              <p className="text-xs text-[#8A8782] flex items-center gap-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Checking delivery zone from IG11 0RG…
+              </p>
+            )}
+            {!zoneLoading && deliveryZone?.message && (
+              <p
+                className={`text-xs rounded-lg px-3 py-2 border ${
+                  deliveryZone.status === 'free'
+                    ? 'text-[#64625D] bg-[#FBFBFA] border-[#EBEAE6]'
+                    : 'text-amber-900 bg-amber-50 border-amber-200'
+                }`}
+              >
+                {deliveryZone.message}
+              </p>
+            )}
             <textarea
               rows={2}
               value={remarks}
@@ -230,9 +288,6 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
           <div className="space-y-3">
             <p className="text-xs font-mono uppercase tracking-wider text-[#64625D] flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" /> Choose delivery date & time
-            </p>
-            <p className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
-              Earliest delivery is <strong>2 days from today</strong> — today and tomorrow are not available.
             </p>
             <select
               required
@@ -272,7 +327,7 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || zoneLoading}
             className="w-full bg-[#1C1B1A] hover:bg-black disabled:opacity-60 text-white text-xs font-semibold uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2"
           >
             {loading ? (
@@ -283,17 +338,14 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
             ) : (
               <>
                 <Lock className="w-4 h-4" />
-                Pay £{total} securely
+                Pay £{checkoutTotal} securely
               </>
             )}
           </button>
 
           <PaymentBadges />
           <p className="text-[10px] text-center text-[#8A8782] leading-relaxed">
-            Stripe Checkout supports card, Apple Pay, Google Pay, Klarna & Clearpay. Enable each in your{' '}
-            <a href="https://dashboard.stripe.com/settings/payment_methods" className="underline" target="_blank" rel="noreferrer">
-              Stripe Dashboard
-            </a>.
+            Secure payment via Stripe — card, Apple Pay, Google Pay, Klarna & Clearpay.
           </p>
         </form>
       </div>

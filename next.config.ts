@@ -27,6 +27,11 @@ const nextConfig: NextConfig = {
         hostname: 'homeandlove.louisinteriors.co.uk',
         pathname: '/wp-content/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+        pathname: '/wikipedia/commons/**',
+      },
     ],
   },
   experimental: {
