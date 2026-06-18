@@ -7,5 +7,18 @@ export function getStripe(): Stripe {
   if (!key) {
     throw new Error('Stripe is not configured. Add STRIPE_SECRET_KEY to your environment.');
   }
-  return new Stripe(key);
+  return new Stripe(key, {
+    apiVersion: '2025-02-24.acacia',
+    typescript: true,
+  });
+}
+
+export function stripeErrorMessage(error: unknown): string {
+  if (error instanceof Stripe.errors.StripeError) {
+    return error.message;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'Checkout failed';
 }

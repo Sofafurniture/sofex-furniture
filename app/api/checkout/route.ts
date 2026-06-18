@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type Stripe from 'stripe';
 import { buildOrderDescription, calculatePrice } from '@/lib/pricing';
 import { formatDeliverySlot, isDeliveryDateAllowed } from '@/lib/delivery-slots';
 import { getDeliveryZone } from '@/lib/delivery-zone';
 import { applyPercentDiscount, FIRST_ORDER_DISCOUNT_PERCENT, validateDiscountCode } from '@/lib/discount';
-import { getStripe, isStripeConfigured } from '@/lib/stripe';
+import { getStripe, isStripeConfigured, stripeErrorMessage } from '@/lib/stripe';
 import { createServiceClient, isSupabaseConfigured } from '@/lib/supabase';
 import type { SofaConfiguration } from '@/lib/sofa-data';
 
@@ -136,10 +137,9 @@ export async function POST(request: NextRequest) {
       zone.surchargeGbp > 0 ? ` · Out-of-zone delivery +£${zone.surchargeGbp}` : ' · Free delivery'
     }`;
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionBase: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
       customer_email: customerEmail.trim(),
-      payment_method_types: ['card', 'klarna', 'afterpay_clearpay'],
       billing_address_collection: 'required',
       shipping_address_collection: { allowed_countries: ['GB'] },
       phone_number_collection: { enabled: false },
@@ -167,13 +167,39 @@ export async function POST(request: NextRequest) {
       },
       success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/cancel?order_id=${order.id}`,
-    });
+    };
+
+    let session: Stripe.Checkout.Session | null = null;
+    const paymentMethodAttempts: Stripe.Checkout.SessionCreateParams.PaymentMethodType[][] = [
+      ['card', 'klarna', 'afterpay_clearpay'],
+      ['card'],
+    ];
+
+    for (const payment_method_types of paymentMethodAttempts) {
+      try {
+        session = await stripe.checkout.sessions.create({
+          ...sessionBase,
+          payment_method_types,
+        });
+        break;
+      } catch (attemptError) {
+        if (payment_method_types.length === 1) throw attemptError;
+        console.warn('Stripe checkout retry with card only:', stripeErrorMessage(attemptError));
+      }
+    }
+
+    if (!session?.url) {
+      return NextResponse.json({ error: 'Checkout failed', message: 'Stripe did not return a checkout URL.' }, { status: 500 });
+    }
 
     await supabase.from('orders').update({ stripe_session_id: session.id }).eq('id', order.id);
 
     return NextResponse.json({ url: session.url, orderId: order.id });
   } catch (error) {
     console.error('Checkout error:', error);
-    return NextResponse.json({ error: 'Checkout failed' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Checkout failed', message: stripeErrorMessage(error) },
+      { status: 500 },
+    );
   }
 }

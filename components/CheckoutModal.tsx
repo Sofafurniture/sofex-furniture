@@ -141,9 +141,7 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
 
       if (!res.ok) {
         if (data.demoMode) {
-          setError(
-            `Demo mode: Add Stripe keys to Netlify (STRIPE_SECRET_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY). Your total: £${data.total}.`,
-          );
+          setError(data.message ?? 'Payment system is not fully configured yet.');
         } else {
           setError(data.message ?? data.error ?? 'Checkout failed');
         }
