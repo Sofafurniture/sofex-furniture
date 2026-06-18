@@ -7,4 +7,6 @@ export const STORE_EMAIL = process.env.STORE_EMAIL ?? 'info@sofexfurniture.co.uk
 
 /** Sender address for transactional email (must be verified in Resend). */
 export const EMAIL_FROM =
-  process.env.EMAIL_FROM ?? `Sofex Furniture <${STORE_EMAIL}>`;
+  process.env.EMAIL_FROM ??
+  process.env.RESEND_FROM ??
+  `Sofex Furniture <${STORE_EMAIL}>`;

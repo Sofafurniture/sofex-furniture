@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { fulfillOrder } from '@/lib/fulfill-order';
 import { getStripe } from '@/lib/stripe';
 import { createServiceClient } from '@/lib/supabase';
-import { sendOrderConfirmationEmails } from '@/lib/order-notifications';
-import type { SofaConfiguration } from '@/lib/sofa-data';
 
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
+    console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET is not set on Netlify');
     return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
   }
 
@@ -32,29 +32,9 @@ export async function POST(request: NextRequest) {
     const orderId = session.metadata?.order_id;
 
     if (orderId) {
-      const supabase = createServiceClient();
-      const { data: order } = await supabase
-        .from('orders')
-        .update({ status: 'paid' })
-        .eq('id', orderId)
-        .select('id, customer_email, customer_name, shipping_address, configuration, total_pence')
-        .single();
-
-      if (order) {
-        try {
-          await sendOrderConfirmationEmails({
-            ...order,
-            configuration: order.configuration as SofaConfiguration & {
-              deliveryLabel?: string;
-              deliveryRemarks?: string;
-              customerPhone?: string;
-              deliveryDate?: string;
-              deliverySlot?: string;
-            },
-          });
-        } catch (emailError) {
-          console.error('Order confirmation email failed:', emailError);
-        }
+      const result = await fulfillOrder(orderId);
+      if (result.emailError) {
+        console.error('[stripe-webhook] Fulfillment email issue:', result);
       }
     }
   }

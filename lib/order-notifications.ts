@@ -1,5 +1,10 @@
 import { BRAND_NAME, STORE_EMAIL } from './brand';
-import { escapeHtml, sendEmail } from './email';
+import { sendEmail } from './email';
+import {
+  buildCustomerOrderEmail,
+  buildStoreOrderEmail,
+  type OrderEmailData,
+} from './order-email-template';
 import { buildOrderDescription } from './pricing';
 import type { SofaConfiguration } from './sofa-data';
 
@@ -18,56 +23,59 @@ interface OrderRecord {
   total_pence: number;
 }
 
+export interface OrderEmailResults {
+  customer: Awaited<ReturnType<typeof sendEmail>>;
+  store: Awaited<ReturnType<typeof sendEmail>>;
+}
+
 function formatGbp(pence: number): string {
   return `£${(pence / 100).toFixed(2)}`;
 }
 
-function orderSummaryHtml(order: OrderRecord): string {
+function toEmailData(order: OrderRecord): OrderEmailData {
   const config = order.configuration;
-  const description = buildOrderDescription(config);
-  const delivery = config.deliveryLabel ?? `${config.deliveryDate ?? ''} ${config.deliverySlot ?? ''}`.trim();
-  const phone = config.customerPhone ?? '—';
-  const remarks = config.deliveryRemarks?.trim();
+  const delivery =
+    config.deliveryLabel?.trim() ||
+    [config.deliveryDate, config.deliverySlot].filter(Boolean).join(' ').trim() ||
+    'To be confirmed';
 
-  return `
-    <p><strong>Order ID:</strong> ${escapeHtml(order.id)}</p>
-    <p><strong>Customer:</strong> ${escapeHtml(order.customer_name)}</p>
-    <p><strong>Email:</strong> ${escapeHtml(order.customer_email)}</p>
-    <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
-    <p><strong>Address:</strong> ${escapeHtml(order.shipping_address)}</p>
-    <p><strong>Configuration:</strong> ${escapeHtml(description)}</p>
-    <p><strong>Delivery:</strong> ${escapeHtml(delivery || '—')}</p>
-    ${remarks ? `<p><strong>Delivery notes:</strong> ${escapeHtml(remarks)}</p>` : ''}
-    <p><strong>Total paid:</strong> ${formatGbp(order.total_pence)}</p>
-  `;
+  return {
+    orderId: order.id,
+    customerName: order.customer_name,
+    customerEmail: order.customer_email,
+    customerPhone: config.customerPhone?.trim() || '—',
+    shippingAddress: order.shipping_address,
+    sofaDescription: buildOrderDescription(config),
+    deliveryWindow: delivery,
+    deliveryNotes: config.deliveryRemarks?.trim() || undefined,
+    totalPaid: formatGbp(order.total_pence),
+  };
 }
 
-export async function sendOrderConfirmationEmails(order: OrderRecord): Promise<void> {
-  const summary = orderSummaryHtml(order);
-  const total = formatGbp(order.total_pence);
+export async function sendOrderConfirmationEmails(order: OrderRecord): Promise<OrderEmailResults> {
+  const data = toEmailData(order);
+  const total = data.totalPaid;
 
-  await sendEmail({
+  const customer = await sendEmail({
     to: order.customer_email,
-    subject: `Order confirmed — ${BRAND_NAME}`,
+    subject: `Your Sofex order is confirmed — ${total}`,
     replyTo: STORE_EMAIL,
-    html: `
-      <h2>Thank you for your order</h2>
-      <p>Hi ${escapeHtml(order.customer_name)},</p>
-      <p>We've received your payment of <strong>${total}</strong>. Our team will be in touch about your delivery slot.</p>
-      ${summary}
-      <p>Questions? Reply to this email or contact us at <a href="mailto:${STORE_EMAIL}">${STORE_EMAIL}</a>.</p>
-      <p>— ${BRAND_NAME}</p>
-    `,
+    html: buildCustomerOrderEmail(data),
   });
 
-  await sendEmail({
+  const store = await sendEmail({
     to: STORE_EMAIL,
     subject: `New paid order — ${order.customer_name} (${total})`,
     replyTo: order.customer_email,
-    html: `
-      <h2>New order received</h2>
-      <p>A customer has completed checkout on the website.</p>
-      ${summary}
-    `,
+    html: buildStoreOrderEmail(data),
   });
+
+  if (!customer.ok) {
+    console.error('[order-email] Customer email failed:', customer.error);
+  }
+  if (!store.ok) {
+    console.error('[order-email] Store email failed:', store.error);
+  }
+
+  return { customer, store };
 }
