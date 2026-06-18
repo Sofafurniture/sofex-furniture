@@ -67,6 +67,7 @@ export default function SofaConfigurator() {
           <Link href="/#delivery" className="hover:text-black transition-colors">Delivery</Link>
           <Link href="/configurator" className="text-black font-semibold underline underline-offset-4">Configurator</Link>
           <Link href="/#collections" className="hover:text-black transition-colors">Collections</Link>
+          <Link href="/contact" className="hover:text-black transition-colors">Contact</Link>
         </nav>
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold uppercase tracking-widest text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 hidden sm:inline">

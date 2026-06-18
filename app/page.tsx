@@ -4,7 +4,7 @@ import { ArrowRight, ShieldCheck, Sparkles, Star, Truck, Clock, MapPin, Wrench }
 import { BrandLogo } from '@/components/BrandLogo';
 import { DeliveryPromiseStrip } from '@/components/DeliveryPromiseStrip';
 import { UserAuth } from '@/components/UserAuth';
-import { BRAND_NAME } from '@/lib/brand';
+import { BRAND_NAME, STORE_EMAIL } from '@/lib/brand';
 import { DELIVERY_PROMISE } from '@/lib/configurator-catalog';
 import { FABRIC_DETAILS, MODEL_DETAILS } from '@/lib/sofa-data';
 import { PRODUCT_CATALOG, brooklynProduct } from '@/lib/products';
@@ -24,6 +24,7 @@ export default function HomePage() {
           <a href="#story" className="hover:text-black transition-colors">Our Story</a>
           <a href="#collections" className="hover:text-black transition-colors">Collections</a>
           <Link href="/configurator" className="hover:text-black transition-colors">Configurator</Link>
+          <Link href="/contact" className="hover:text-black transition-colors">Contact</Link>
         </nav>
         <div className="flex items-center gap-3">
           <Link
@@ -215,6 +216,9 @@ export default function HomePage() {
           <div>
             <BrandLogo href="/" size="lg" />
             <p className="text-xs text-white/60 mt-1">Bespoke sofas, built to order.</p>
+            <a href={`mailto:${STORE_EMAIL}`} className="text-xs text-white/50 mt-2 inline-block hover:text-white">
+              {STORE_EMAIL}
+            </a>
           </div>
           <p className="text-xs text-white/40">© {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.</p>
         </div>

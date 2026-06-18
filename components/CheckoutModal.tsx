@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { calculatePrice } from '@/lib/pricing';
+import { getPaymentTestPriceGbp, isPaymentTestOrder } from '@/lib/payment-test';
 import { useSofaStore } from '@/store/sofa-store';
 import { getDeliveryDays, looksLikeUkPostcode } from '@/lib/delivery-slots';
 import type { DeliveryZoneResult } from '@/lib/delivery-zone';
@@ -38,8 +39,9 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
 
   const deliveryDays = useMemo(() => getDeliveryDays(), []);
   const selectedDay = deliveryDays.find((d) => d.date === deliveryDate);
-  const deliverySurcharge = deliveryZone?.surchargeGbp ?? 0;
-  const checkoutTotal = total + deliverySurcharge;
+  const paymentTest = isPaymentTestOrder(config);
+  const deliverySurcharge = paymentTest ? 0 : (deliveryZone?.surchargeGbp ?? 0);
+  const checkoutTotal = paymentTest ? getPaymentTestPriceGbp() : total + deliverySurcharge;
   const monthly = useMemo(() => (checkoutTotal / 12).toFixed(2), [checkoutTotal]);
 
   useEffect(() => {
@@ -342,9 +344,6 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
           </button>
 
           <PaymentBadges />
-          <p className="text-[10px] text-center text-[#8A8782] leading-relaxed">
-            You&apos;ve already entered your details — Stripe will only ask for payment.
-          </p>
         </form>
       </div>
     </div>

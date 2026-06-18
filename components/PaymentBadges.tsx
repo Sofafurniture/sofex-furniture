@@ -3,7 +3,7 @@ import Image from 'next/image';
 const badge =
   'inline-flex items-center justify-center h-10 px-3 rounded-lg border border-[#E8E6E1] bg-white';
 
-/** Official brand marks via Wikimedia Commons (reliable, readable logos). */
+/** Official brand marks — Clearpay uses a text badge (no external asset). */
 const PAYMENT_MARKS = [
   {
     name: 'Stripe',
@@ -29,13 +29,18 @@ const PAYMENT_MARKS = [
     width: 52,
     height: 22,
   },
-  {
-    name: 'Clearpay',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Afterpay_logo.svg',
-    width: 72,
-    height: 18,
-  },
 ] as const;
+
+function ClearpayBadge() {
+  return (
+    <span
+      className={`${badge} border-[#B2FCE4] bg-[#B2FCE4] px-4`}
+      title="Clearpay"
+    >
+      <span className="text-sm font-bold text-black tracking-tight lowercase">clearpay</span>
+    </span>
+  );
+}
 
 export function PaymentBadges() {
   return (
@@ -52,6 +57,7 @@ export function PaymentBadges() {
           />
         </span>
       ))}
+      <ClearpayBadge />
     </div>
   );
 }

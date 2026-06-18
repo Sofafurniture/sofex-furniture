@@ -6,6 +6,7 @@ import {
   type SofaConfiguration,
 } from './sofa-data';
 import { getConfiguratorCategory } from './configurator-catalog';
+import { getPaymentTestPriceGbp, isPaymentTestOrder } from './payment-test';
 
 export interface PriceBreakdown {
   baseFramePrice: number;
@@ -19,6 +20,17 @@ export function calculatePrice(config: SofaConfiguration): PriceBreakdown {
   const category = getConfiguratorCategory(config.categoryIndex);
   const cushionPremium = CUSHION_DETAILS[config.cushionType].premium;
   const backPremium = BACK_DETAILS[config.backStyle].premium;
+
+  if (isPaymentTestOrder(config)) {
+    const testPrice = getPaymentTestPriceGbp();
+    return {
+      baseFramePrice: testPrice,
+      cushionPremium: 0,
+      backPremium: 0,
+      total: testPrice,
+      categoryLabel: category.label,
+    };
+  }
 
   return {
     baseFramePrice: category.price,

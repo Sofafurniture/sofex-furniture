@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
 import { createServiceClient } from '@/lib/supabase';
+import { sendOrderConfirmationEmails } from '@/lib/order-notifications';
+import type { SofaConfiguration } from '@/lib/sofa-data';
 
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -31,10 +33,29 @@ export async function POST(request: NextRequest) {
 
     if (orderId) {
       const supabase = createServiceClient();
-      await supabase
+      const { data: order } = await supabase
         .from('orders')
         .update({ status: 'paid' })
-        .eq('id', orderId);
+        .eq('id', orderId)
+        .select('id, customer_email, customer_name, shipping_address, configuration, total_pence')
+        .single();
+
+      if (order) {
+        try {
+          await sendOrderConfirmationEmails({
+            ...order,
+            configuration: order.configuration as SofaConfiguration & {
+              deliveryLabel?: string;
+              deliveryRemarks?: string;
+              customerPhone?: string;
+              deliveryDate?: string;
+              deliverySlot?: string;
+            },
+          });
+        } catch (emailError) {
+          console.error('Order confirmation email failed:', emailError);
+        }
+      }
     }
   }
 

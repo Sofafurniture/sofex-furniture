@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { ArrowRight, Check, ShoppingBag, Star, Truck } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { UserAuth } from '@/components/UserAuth';
-import { BRAND_NAME } from '@/lib/brand';
+import { BRAND_NAME, STORE_EMAIL } from '@/lib/brand';
 import { ProductGallery } from '@/components/ProductGallery';
 import { ProductReviews } from '@/components/ProductReviews';
 import { shouldBypassImageOptimizer } from '@/lib/image-utils';
@@ -26,6 +26,7 @@ export function ProductPageContent({ product }: ProductPageContentProps) {
           <Link href="/#story" className="hover:text-black transition-colors">Our Story</Link>
           <Link href={`/products/${product.slug}`} className="text-black font-semibold underline underline-offset-4 capitalize">{product.slug}</Link>
           <Link href="/configurator" className="hover:text-black transition-colors">Configurator</Link>
+          <Link href="/contact" className="hover:text-black transition-colors">Contact</Link>
         </nav>
         <div className="flex items-center gap-3">
           <Link
@@ -219,6 +220,9 @@ export function ProductPageContent({ product }: ProductPageContentProps) {
           <div>
             <BrandLogo href="/" size="lg" />
             <p className="text-xs text-white/60 mt-1">Bespoke sofas, built to order.</p>
+            <a href={`mailto:${STORE_EMAIL}`} className="text-xs text-white/50 mt-2 inline-block hover:text-white">
+              {STORE_EMAIL}
+            </a>
           </div>
           <p className="text-xs text-white/40">© {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.</p>
         </div>

@@ -5,6 +5,7 @@ import { formatDeliverySlot, isDeliveryDateAllowed } from '@/lib/delivery-slots'
 import { getDeliveryZone } from '@/lib/delivery-zone';
 import { lookupUkPostcode, toStripeAddress } from '@/lib/postcode';
 import { applyPercentDiscount, FIRST_ORDER_DISCOUNT_PERCENT, validateDiscountCode } from '@/lib/discount';
+import { getPaymentTestPriceGbp, isPaymentTestOrder } from '@/lib/payment-test';
 import { getStripe, isStripeConfigured, stripeErrorMessage } from '@/lib/stripe';
 import { createServiceClient, isSupabaseConfigured } from '@/lib/supabase';
 import type { SofaConfiguration } from '@/lib/sofa-data';
@@ -75,17 +76,22 @@ export async function POST(request: NextRequest) {
     const trimmedPhone = customerPhone.trim();
 
     const prices = calculatePrice(config);
+    const paymentTest = isPaymentTestOrder(config);
     let totalPence = prices.total * 100;
-    const deliverySurchargePence = zone.surchargeGbp * 100;
+    const deliverySurchargePence = paymentTest ? 0 : zone.surchargeGbp * 100;
     totalPence += deliverySurchargePence;
     let discountApplied = false;
 
-    if (discountCode?.trim()) {
+    if (!paymentTest && discountCode?.trim()) {
       const valid = await validateDiscountCode(discountCode);
       if (valid) {
         totalPence = applyPercentDiscount(totalPence, FIRST_ORDER_DISCOUNT_PERCENT);
         discountApplied = true;
       }
+    }
+
+    if (paymentTest) {
+      totalPence = getPaymentTestPriceGbp() * 100;
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -105,7 +111,8 @@ export async function POST(request: NextRequest) {
       discountApplied,
       deliveryZone: zone.status,
       deliveryDistanceMiles: zone.distanceMiles,
-      deliverySurchargeGbp: zone.surchargeGbp,
+      deliverySurchargeGbp: paymentTest ? 0 : zone.surchargeGbp,
+      paymentTest,
     };
 
     if (!isStripeConfigured || !isSupabaseConfigured) {
