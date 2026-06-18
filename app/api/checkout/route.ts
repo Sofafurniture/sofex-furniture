@@ -3,6 +3,7 @@ import type Stripe from 'stripe';
 import { buildOrderDescription, calculatePrice } from '@/lib/pricing';
 import { formatDeliverySlot, isDeliveryDateAllowed } from '@/lib/delivery-slots';
 import { getDeliveryZone } from '@/lib/delivery-zone';
+import { lookupUkPostcode, toStripeAddress } from '@/lib/postcode';
 import { applyPercentDiscount, FIRST_ORDER_DISCOUNT_PERCENT, validateDiscountCode } from '@/lib/discount';
 import { getStripe, isStripeConfigured, stripeErrorMessage } from '@/lib/stripe';
 import { createServiceClient, isSupabaseConfigured } from '@/lib/supabase';
@@ -66,6 +67,12 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const postcodeLookup = await lookupUkPostcode(postcode);
+    const stripeAddress = toStripeAddress(shippingAddress, postcode, postcodeLookup);
+    const trimmedName = customerName.trim();
+    const trimmedEmail = customerEmail.trim();
+    const trimmedPhone = customerPhone.trim();
 
     const prices = calculatePrice(config);
     let totalPence = prices.total * 100;
@@ -137,12 +144,39 @@ export async function POST(request: NextRequest) {
       zone.surchargeGbp > 0 ? ` · Out-of-zone delivery +£${zone.surchargeGbp}` : ' · Free delivery'
     }`;
 
+    const customer = await stripe.customers.create({
+      email: trimmedEmail,
+      name: trimmedName,
+      phone: trimmedPhone,
+      address: stripeAddress,
+      shipping: {
+        name: trimmedName,
+        phone: trimmedPhone,
+        address: stripeAddress,
+      },
+      metadata: { order_id: order.id },
+    });
+
     const sessionBase: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
-      customer_email: customerEmail.trim(),
-      billing_address_collection: 'required',
-      shipping_address_collection: { allowed_countries: ['GB'] },
+      customer: customer.id,
+      customer_update: {
+        name: 'never',
+        address: 'never',
+        shipping: 'never',
+      },
+      billing_address_collection: 'auto',
       phone_number_collection: { enabled: false },
+      payment_intent_data: {
+        shipping: {
+          name: trimmedName,
+          phone: trimmedPhone,
+          address: stripeAddress,
+        },
+        metadata: {
+          customer_phone: trimmedPhone,
+        },
+      },
       line_items: [
         {
           price_data: {

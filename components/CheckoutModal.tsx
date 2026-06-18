@@ -343,7 +343,7 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
 
           <PaymentBadges />
           <p className="text-[10px] text-center text-[#8A8782] leading-relaxed">
-            Secure payment via Stripe — card, Apple Pay, Google Pay, Klarna & Clearpay.
+            You&apos;ve already entered your details — Stripe will only ask for payment.
           </p>
         </form>
       </div>
